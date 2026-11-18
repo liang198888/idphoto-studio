@@ -1,0 +1,144 @@
+<!-- pages/index/index.wxml - 首页：照片上传与制作 -->
+<view class="container">
+  <!-- 顶部品牌区 -->
+  <view class="header">
+    <view class="logo">
+      <view class="logo-icon">📷</view>
+      <view class="logo-text">
+        <text class="brand-name">证件照工作台</text>
+        <text class="brand-subtitle">智能抠图 · 专业换底</text>
+      </view>
+    </view>
+    <view class="free-badge" wx:if="{{canUseFreeTrial}}">
+      <text>剩余 {{freeTrialsLeft}} 次免费</text>
+    </view>
+  </view>
+
+  <!-- 上传区域 -->
+  <view class="upload-section card">
+    <view class="section-title">上传照片</view>
+    <view class="upload-area" bindtap="chooseImage">
+      <view class="upload-icon">📁</view>
+      <view class="upload-text">点击或拖拽上传图片</view>
+      <view class="upload-hint">支持 JPG / PNG / WEBP，建议原图上传</view>
+    </view>
+    <view class="current-file" wx:if="{{currentFile}}">
+      <view class="file-info">
+        <text class="file-icon">🖼️</text>
+        <text class="file-name">{{currentFile.name}}</text>
+      </view>
+      <view class="file-remove" bindtap="removeFile">×</view>
+    </view>
+  </view>
+
+  <!-- 规格选择 -->
+  <view class="options-section card">
+    <view class="section-title">证件照规格</view>
+
+    <!-- 常用规格 -->
+    <view class="spec-grid">
+      <view
+        class="spec-item {{selectedSpec === item.value ? 'active' : ''}}"
+        wx:for="{{specs}}"
+        wx:key="value"
+        bindtap="selectSpec"
+        data-spec="{{item.value}}"
+      >
+        <text class="spec-name">{{item.name}}</text>
+        <text class="spec-size">{{item.size}}</text>
+      </view>
+    </view>
+
+    <!-- 自定义尺寸 -->
+    <view class="custom-size" wx:if="{{showCustomSize}}">
+      <view class="size-input">
+        <input type="number" placeholder="宽" value="{{customWidth}}" bindinput="onCustomWidthInput" />
+        <text>×</text>
+        <input type="number" placeholder="高" value="{{customHeight}}" bindinput="onCustomHeightInput" />
+        <text class="unit">px</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 背景设置 -->
+  <view class="options-section card">
+    <view class="section-title">背景颜色</view>
+    <view class="color-options">
+      <view
+        class="color-item {{selectedBg === item.color ? 'active' : ''}}"
+        wx:for="{{bgColors}}"
+        wx:key="color"
+        bindtap="selectBg"
+        data-color="{{item.color}}"
+      >
+        <view class="color-preview" style="background: {{item.color}}"></view>
+        <text class="color-name">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 高级选项 -->
+  <view class="options-section card">
+    <view class="section-title">高级选项</view>
+    <view class="option-row">
+      <text class="option-label">抠图模式</text>
+      <picker mode="selector" range="{{cutModes}}" bindchange="onCutModeChange">
+        <view class="picker-value">{{cutModes[cutModeIndex]}}</view>
+      </picker>
+    </view>
+    <view class="option-row">
+      <text class="option-label">保留衣领</text>
+      <switch checked="{{protectBody}}" bindchange="onProtectBodyChange" color="#667eea" />
+    </view>
+    <view class="option-row">
+      <text class="option-label">渐变背景</text>
+      <switch checked="{{gradient}}" bindchange="onGradientChange" color="#667eea" />
+    </view>
+  </view>
+
+  <!-- 生成按钮 -->
+  <view class="action-section">
+    <button
+      class="btn btn-primary generate-btn"
+      bindtap="generatePhoto"
+      disabled="{{!hasImage || generating}}"
+    >
+      <text wx:if="{{!generating}}">✨ 生成证件照</text>
+      <text wx:else>⏳ 处理中...</text>
+    </button>
+
+    <!-- 零成本方案：跳转H5网页版 -->
+    <button class="btn btn-outline h5-btn" bindtap="openH5Tool">
+      🌐 使用完整网页版（免费无限制）
+    </button>
+
+    <view class="price-hint" wx:if="{{!canUseFreeTrial && hasImage}}">
+      <text>标准版 ¥9.9/张</text>
+      <text class="separator">|</text>
+      <text>高清版 ¥19.9/张</text>
+    </view>
+  </view>
+
+  <!-- 使用说明 -->
+  <view class="help-section card">
+    <view class="help-title">💡 使用提示</view>
+    <view class="help-list">
+      <view class="help-item">
+        <text class="help-dot">•</text>
+        <text>正面免冠，头部占画面 70% 以上</text>
+      </view>
+      <view class="help-item">
+        <text class="help-dot">•</text>
+        <text>背景尽量简洁，避免复杂图案</text>
+      </view>
+      <view class="help-item">
+        <text class="help-dot">•</text>
+        <text>光线均匀，避免强烈阴影</text>
+      </view>
+      <view class="help-item">
+        <text class="help-dot">•</text>
+        <text>佩戴眼镜请注意反光</text>
+      </view>
+    </view>
+  </view>
+</view>

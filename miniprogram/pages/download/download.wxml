@@ -1,0 +1,103 @@
+<!-- pages/download/download.wxml - 下载页 -->
+<view class="container">
+  <!-- 成功状态 -->
+  <view class="success-card card" wx:if="{{orderPaid}}">
+    <view class="success-icon">✅</view>
+    <view class="success-title">支付成功！</view>
+    <view class="success-desc">您的证件照已生成完成，可以立即下载</view>
+  </view>
+
+  <!-- 订单信息 -->
+  <view class="order-info card">
+    <view class="section-title">📋 订单详情</view>
+    <view class="info-row">
+      <text class="info-label">订单号</text>
+      <text class="info-value">{{orderId}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">支付方式</text>
+      <text class="info-value">{{paymentMethod}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">支付时间</text>
+      <text class="info-value">{{paymentTime}}</text>
+    </view>
+    <view class="info-row total-row">
+      <text class="info-label">实付金额</text>
+      <text class="info-value price-total">¥{{paidAmount}}</text>
+    </view>
+  </view>
+
+  <!-- 下载区域 -->
+  <view class="download-section card">
+    <view class="section-title">📥 选择下载版本</view>
+    
+    <view class="version-options">
+      <!-- 标准版 -->
+      <view class="version-item {{selectedVersion === 'standard' ? 'active' : ''}}" bindtap="selectVersion" data-type="standard">
+        <view class="version-header">
+          <text class="version-name">标准版</text>
+          <text class="version-badge" wx:if="{{selectedVersion === 'standard'}}">✓</text>
+        </view>
+        <view class="version-desc">JPG格式 · 72dpi · 300KB内</view>
+        <view class="version-specs">
+          <text>{{standardWidth}}×{{standardHeight}}px</text>
+        </view>
+      </view>
+
+      <!-- 高清版 -->
+      <view class="version-item {{selectedVersion === 'hd' ? 'active' : ''}}" bindtap="selectVersion" data-type="hd">
+        <view class="version-header">
+          <text class="version-name">高清版</text>
+          <text class="version-badge recommended" wx:if="{{!selectedVersion}}">推荐</text>
+          <text class="version-badge active" wx:if="{{selectedVersion === 'hd'}}">✓</text>
+        </view>
+        <view class="version-desc">PDF排版 · 300dpi · 印刷级</view>
+        <view class="version-specs">
+          <text>{{hdWidth}}×{{hdHeight}}px</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 下载按钮 -->
+    <button class="btn btn-primary download-btn" bindtap="downloadImage" disabled="{{downloading}}">
+      <text wx:if="{{!downloading}}">📥 下载 {{selectedVersion === 'hd' ? '高清版' : '标准版'}}</text>
+      <text wx:else>⏳ 正在打包...</text>
+    </button>
+
+    <view class="download-hint">
+      <text>💡 提示：支持多图打包下载，可添加到打印模板</text>
+    </view>
+  </view>
+
+  <!-- 已下单版本展示 -->
+  <view class="preview-card card" wx:if="{{previewImages.length > 0}}">
+    <view class="section-title">🖼️ 预览图片</view>
+    <scroll-view scroll-x class="image-scroll">
+      <view class="image-grid">
+        <view class="image-item" wx:for="{{previewImages}}" wx:key="index">
+          <image src="{{item}}" mode="aspectFill" class="preview-img" />
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 其他操作 -->
+  <view class="action-list card">
+    <view class="action-item" bindtap="saveToAlbum">
+      <text class="action-icon">💾</text>
+      <text class="action-text">保存到相册</text>
+      <text class="action-arrow">›</text>
+    </view>
+    <view class="action-item" bindtap="shareApp">
+      <text class="action-icon">🎁</text>
+      <text class="action-text">分享给好友</text>
+      <text class="action-arrow">›</text>
+    </view>
+    <view class="action-item" bindtap="backToHome">
+      <text class="action-icon">🏠</text>
+      <text class="action-text">返回首页制作</text>
+      <text class="action-arrow">›</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,88 @@
+<!-- pages/profile/profile.wxml - 个人中心 -->
+<view class="container">
+  <!-- 用户信息卡片 -->
+  <view class="user-card card">
+    <view class="user-header">
+      <image class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+      <view class="user-info">
+        <text class="nickname">{{userInfo.nickName || '微信用户'}}</text>
+        <text class="user-id">ID: {{userId || '未登录'}}</text>
+      </view>
+      <view class="login-btn" bindtap="login">
+        <text>去登录</text>
+      </view>
+    </view>
+    
+    <!-- 统计信息 -->
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-value">{{orderCount}}</text>
+        <text class="stat-label">已完成订单</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{freeTrialsLeft}}</text>
+        <text class="stat-label">免费次数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{totalSpent}}</text>
+        <text class="stat-label">累计消费</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 会员状态 -->
+  <view class="member-card card" wx:if="{{isMember}}">
+    <view class="member-header">
+      <text class="member-icon">👑</text>
+      <view class="member-info">
+        <text class="member-name">月度会员</text>
+        <text class="member-desc">无限次生成 · 截止{{expireDate}}</text>
+      </view>
+    </view>
+    <button class="btn btn-outline renew-btn">续费会员</button>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="menu-card card">
+    <view class="menu-item" bindtap="goToOrders">
+      <text class="menu-icon">📋</text>
+      <text class="menu-text">我的订单</text>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="goToHistory">
+      <text class="menu-icon">🕐</text>
+      <text class="menu-text">制作历史</text>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="shareApp">
+      <text class="menu-icon">🎁</text>
+      <text class="menu-text">分享给好友</text>
+      <text class="menu-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 设置 -->
+  <view class="menu-card card">
+    <view class="menu-item" bindtap="clearCache">
+      <text class="menu-icon">🗑️</text>
+      <text class="menu-text">清除缓存</text>
+      <text class="menu-value">{{cacheSize}}</text>
+    </view>
+    <view class="menu-item" bindtap="about">
+      <text class="menu-icon">ℹ️</text>
+      <text class="menu-text">关于我们</text>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="feedback">
+      <text class="menu-icon">💬</text>
+      <text class="menu-text">意见反馈</text>
+      <text class="menu-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 版本信息 -->
+  <view class="version-info">
+    <text>证件照工作台 v1.0.0</text>
+    <text class="copyright">© 2026 保留所有权利</text>
+  </view>
+</view>

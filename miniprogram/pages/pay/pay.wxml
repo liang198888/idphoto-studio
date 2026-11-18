@@ -1,0 +1,97 @@
+<!-- pages/pay/pay.wxml - 支付页面 -->
+<view class="container">
+  <!-- 订单信息 -->
+  <view class="order-card card">
+    <view class="card-title">订单详情</view>
+    <view class="order-info">
+      <view class="info-row">
+        <text class="info-label">商品名称</text>
+        <text class="info-value">{{productName}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">订单编号</text>
+        <text class="info-value order-id">{{orderId}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">支付金额</text>
+        <text class="info-value price">¥{{amount}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 支付方式 -->
+  <view class="payment-section card">
+    <view class="section-title">选择支付方式</view>
+    <view class="payment-methods">
+      <view
+        class="method {{selectedMethod === 'wechat' ? 'active' : ''}}"
+        bindtap="selectMethod"
+        data-method="wechat"
+      >
+        <text class="method-icon">💚</text>
+        <view class="method-info">
+          <text class="method-name">微信支付</text>
+          <text class="method-desc">推荐使用</text>
+        </view>
+        <view class="method-check" wx:if="{{selectedMethod === 'wechat'}}">✓</view>
+      </view>
+      <view
+        class="method {{selectedMethod === 'alipay' ? 'active' : ''}}"
+        bindtap="selectMethod"
+        data-method="alipay"
+      >
+        <text class="method-icon">📘</text>
+        <view class="method-info">
+          <text class="method-name">支付宝</text>
+          <text class="method-desc">即将上线</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 优惠信息 -->
+  <view class="coupon-section card" wx:if="{{showCoupon}}">
+    <view class="section-title">优惠券</view>
+    <view class="coupon-list">
+      <view class="coupon-item" wx:for="{{coupons}}" wx:key="id">
+        <view class="coupon-left">
+          <text class="coupon-amount">¥{{item.amount}}</text>
+          <text class="coupon-condition">{{item.condition}}</text>
+        </view>
+        <button class="btn btn-outline coupon-btn" size="mini" bindtap="useCoupon" data-index="{{index}}">
+          使用
+        </button>
+      </view>
+    </view>
+    <view class="no-coupon hint" wx:if="{{!hasCoupon}}">暂无可用优惠券</view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="notice card">
+    <view class="notice-title">支付说明</view>
+    <view class="notice-list">
+      <view class="notice-item">• 支付成功后可立即下载高清图片</view>
+      <view class="notice-item">• 支持7天无理由退款</view>
+      <view class="notice-item">• 图片永久保存，随时下载</view>
+    </view>
+  </view>
+
+  <!-- 支付按钮 -->
+  <view class="action-section">
+    <button
+      class="btn btn-primary pay-button"
+      bindtap="handlePayment"
+      disabled="{{paying}}"
+    >
+      <text wx:if="{{!paying}}">立即支付 ¥{{amount}}</text>
+      <text wx:else>处理中...</text>
+    </button>
+    <button class="btn btn-outline cancel-button" bindtap="cancelOrder">取消订单</button>
+  </view>
+
+  <!-- 客服联系 -->
+  <view class="service-tips">
+    <text>遇到问题？</text>
+    <text class="service-link" bindtap="contactService">联系客服</text>
+  </view>
+</view>

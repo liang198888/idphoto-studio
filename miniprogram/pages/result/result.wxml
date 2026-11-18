@@ -1,0 +1,186 @@
+<!-- pages/result/result.wxml - 结果页 -->
+<view class="container">
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">正在智能抠图...</text>
+  </view>
+
+  <!-- 内容区 -->
+  <block wx:else>
+    <!-- 顶部操作栏 -->
+    <view class="top-bar">
+      <view class="back-btn" bindtap="goBack">← 返回</view>
+      <view class="page-title">制作完成</view>
+      <view class="share-btn" bindtap="generatePoster">分享</view>
+    </view>
+
+    <!-- 图片展示区 -->
+    <view class="image-showcase card">
+      <view class="section-header">
+        <text class="section-title">预览效果</text>
+        <text class="image-count">{{processedImages.length}} 个版本</text>
+      </view>
+
+      <!-- 图片网格 -->
+      <scroll-view scroll-x class="image-scroll">
+        <view class="image-grid">
+          <view
+            class="image-item {{selectedImage?.id === item.id ? 'active' : ''}}"
+            wx:for="{{processedImages}}"
+            wx:key="id"
+            bindtap="selectImage"
+            data-index="{{index}}"
+          >
+            <image src="{{item.url}}" mode="aspectFill" class="preview-image" />
+            <view class="image-badge" wx:if="{{item.version === 'hd'}}">HD</view>
+          </view>
+        </view>
+      </scroll-view>
+
+      <!-- 大图预览 -->
+      <view class="main-preview" wx:if="{{selectedImage}}">
+        <image
+          src="{{selectedImage.url}}"
+          mode="widthFix"
+          class="main-image"
+          bindtap="previewImage"
+        />
+        <view class="image-info">
+          <text class="image-version">{{selectedImage.version === 'hd' ? '高清版' : '标准版'}}</text>
+          <text class="image-dimensions">{{selectedImage.width}}×{{selectedImage.height}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 背景切换 -->
+    <view class="bg-switcher card">
+      <view class="section-title">更换背景色</view>
+      <view class="bg-options">
+        <view
+          class="bg-option {{selectedBgColor === item.color ? 'active' : ''}}"
+          wx:for="{{bgColors}}"
+          wx:key="color"
+          bindtap="switchBgColor"
+          data-color="{{item.color}}"
+        >
+          <view class="bg-swatch" style="background: {{item.color}}"></view>
+          <text class="bg-name">{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 价格卡片 -->
+    <view class="price-card card" wx:if="{{!isPaid}}">
+      <view class="price-header">
+        <text class="price-label">选择套餐</text>
+        <view class="free-tag" wx:if="{{canUseFree}}">免费体验中</view>
+      </view>
+      <view class="price-options">
+        <view
+          class="price-option {{selectedPrice === 'standard' ? 'active' : ''}}"
+          bindtap="selectPrice"
+          data-type="standard"
+        >
+          <view class="option-icon">📷</view>
+          <view class="option-info">
+            <text class="option-name">标准版</text>
+            <text class="option-desc">基础尺寸 · JPG格式</text>
+          </view>
+          <view class="option-price">
+            <text class="original-price" wx:if="{{showOriginalPrice}}">¥9.9</text>
+            <text class="current-price">¥{{standardPrice}}</text>
+          </view>
+        </view>
+        <view
+          class="price-option {{selectedPrice === 'hd' ? 'active' : ''}}"
+          bindtap="selectPrice"
+          data-type="hd"
+        >
+          <view class="option-label">推荐</view>
+          <view class="option-icon">✨</view>
+          <view class="option-info">
+            <text class="option-name">高清版</text>
+            <text class="option-desc">300dpi · PDF排版</text>
+          </view>
+          <view class="option-price">
+            <text class="current-price">¥{{hdPrice}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <button
+        class="btn btn-outline save-btn"
+        bindtap="saveToAlbum"
+        disabled="{{!selectedImage}}"
+      >
+        💾 保存到相册
+      </button>
+      <button
+        class="btn btn-primary pay-btn"
+        bindtap="openPayModal"
+        wx:if="{{!isPaid}}"
+      >
+        💳 立即支付 ¥{{selectedPrice === 'hd' ? hdPrice : standardPrice}}
+      </button>
+      <button
+        class="btn btn-success success-btn"
+        wx:if="{{isPaid}}"
+      >
+        ✅ 已支付成功
+      </button>
+    </view>
+
+    <!-- 下载按钮 -->
+    <view class="download-section card" wx:if="{{isPaid}}">
+      <view class="download-title">📥 立即下载</view>
+      <button class="btn btn-primary download-btn" bindtap="downloadImage">
+        下载标准版 (JPG)
+      </button>
+      <button class="btn btn-outline download-btn secondary" wx:if="{{selectedVersion === 'hd'}}" bindtap="downloadPDF">
+        下载高清排版 (PDF)
+      </button>
+    </view>
+  </block>
+
+  <!-- 支付弹窗 -->
+  <view class="modal {{showPayModal ? 'show' : ''}}" bindtap="closePayModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-header">
+        <text class="modal-title">确认支付</text>
+        <view class="modal-close" bindtap="closePayModal">×</view>
+      </view>
+      <view class="modal-body">
+        <view class="order-summary">
+          <view class="summary-row">
+            <text class="summary-label">商品</text>
+            <text class="summary-value">{{selectedPrice === 'hd' ? '高清证件照' : '标准证件照'}}</text>
+          </view>
+          <view class="summary-row">
+            <text class="summary-label">数量</text>
+            <text class="summary-value">1 张</text>
+          </view>
+          <view class="divider"></view>
+          <view class="summary-row total">
+            <text class="summary-label">合计</text>
+            <text class="summary-value price-total">¥{{payAmount}}</text>
+          </view>
+        </view>
+        <view class="payment-method">
+          <view class="method-label">支付方式</view>
+          <view class="method-option active">
+            <text>微信支付</text>
+            <text class="method-desc">安全快捷</text>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="btn btn-outline cancel-btn" bindtap="closePayModal">取消</button>
+        <button class="btn btn-primary confirm-btn" bindtap="confirmPayment">确认支付</button>
+      </view>
+    </view>
+  </view>
+</view>

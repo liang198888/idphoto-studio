@@ -1,0 +1,2104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>证件照工作台</title>
+<style>
+:root{
+  --bg:#f4f6f8; --surface:#ffffff; --line:#e3e9ee; --ink:#22303c; --muted:#8794a1;
+  --accent:#5b7b9c; --deep:#3c5c7d; --soft:#eaf0f6; --radius:10px;
+  --shadow:0 1px 2px rgba(28,45,62,.04),0 8px 28px rgba(28,45,62,.06);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:13px/1.5 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.topbar{height:60px;display:flex;align-items:center;gap:14px;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--line)}
+.mark{width:26px;height:26px;border-radius:7px;background:var(--deep);position:relative;flex:none}
+.mark:before{content:"";position:absolute;inset:7px 6px 8px;border:1.5px solid #fff;border-radius:2px}
+.mark:after{content:"";position:absolute;left:11px;top:3px;width:4px;height:4px;border-radius:50%;background:#fff}
+.brand{font-size:15px;font-weight:600;letter-spacing:.4px}
+.brand small{display:block;font-size:10px;font-weight:400;letter-spacing:1.6px;color:var(--muted);text-transform:uppercase}
+.topbar .spacer{flex:1}
+.badge{font-size:11px;color:var(--muted);padding:5px 10px;border:1px solid var(--line);border-radius:99px}
+.layout{display:grid;grid-template-columns:336px 1fr;height:calc(100% - 60px);min-height:0}
+.panel{background:var(--surface);border-right:1px solid var(--line);overflow-y:auto;padding:16px 20px 24px}
+.panel::-webkit-scrollbar{width:8px}.panel::-webkit-scrollbar-thumb{background:#dbe3ea;border-radius:8px}
+.group{margin-bottom:15px}
+.group-title{font-size:11px;font-weight:600;letter-spacing:1px;color:var(--deep);margin:0 0 10px;padding-bottom:7px;border-bottom:1px solid var(--line)}
+.row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.row>label{width:60px;flex:none;color:#5a6875;font-size:12px}
+.field{flex:1;min-width:0;display:flex;gap:8px;align-items:center}
+select,input[type=text],input[type=number]{width:100%;height:32px;padding:0 9px;border:1px solid var(--line);border-radius:7px;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' fill='none' stroke='%238794a1' stroke-width='1.4'/></svg>");background-repeat:no-repeat;background-position:right 10px center;padding-right:26px}
+select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--soft)}
+.btn{height:32px;padding:0 12px;border:1px solid var(--line);background:#fff;border-radius:7px;transition:.15s;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--deep);background:#fbfdff}
+.btn:active{transform:translateY(1px)}
+.btn.primary{height:38px;width:100%;background:var(--deep);border-color:var(--deep);color:#fff;font-weight:600;letter-spacing:.5px}
+.btn.primary:hover{background:#33516e;color:#fff}
+.btn.full{width:100%}
+.btn.mini{height:28px;font-size:12px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn-pair{display:flex;gap:8px}.btn-pair .btn{flex:1}
+.filename{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:-4px 0 10px 70px}
+.checks{display:flex;gap:14px;flex-wrap:wrap;margin:2px 0 0 70px}
+.check{display:flex;align-items:center;gap:6px;font-size:12px;color:#5a6875;cursor:pointer;user-select:none}
+.check input{accent-color:var(--deep);width:14px;height:14px;margin:0}
+.slider{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.slider>label{width:60px;flex:none;font-size:12px;color:#5a6875}
+.slider input[type=range]{flex:1;min-width:0;accent-color:var(--deep);height:18px}
+.slider .val{width:38px;text-align:right;font-variant-numeric:tabular-nums;color:var(--deep);font-size:12px}
+.hint{font-size:11px;color:var(--muted);line-height:1.7;margin:8px 0 0}
+.stage{position:relative;display:flex;flex-direction:column;min-width:0;padding:22px 26px 18px}
+.stage-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.tabs{display:flex;gap:4px;background:#e9eef2;padding:3px;border-radius:8px}
+.tab{padding:5px 13px;border:0;background:transparent;border-radius:6px;font-size:12px;color:#6b7885}
+.tab.on{background:#fff;color:var(--deep);font-weight:600;box-shadow:0 1px 3px rgba(28,45,62,.08)}
+.stage-head .spacer{flex:1}
+.tool-link{border:0;background:none;color:var(--deep);font-size:12px;padding:5px 6px;text-decoration:underline;text-underline-offset:3px}
+.viewport{flex:1;min-height:0;border:1px dashed #cfdae3;border-radius:14px;background:linear-gradient(180deg,#fbfcfd,#f2f5f8);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.viewport.drag{border-color:var(--accent);background:var(--soft)}
+.viewport canvas{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;box-shadow:0 10px 34px rgba(28,45,62,.13);border-radius:2px;display:block}
+.empty{position:absolute;text-align:center;color:var(--muted);pointer-events:none}
+.empty .ico{width:52px;height:52px;margin:0 auto 14px;border:1.5px solid #c3cfd9;border-radius:12px;position:relative}
+.empty .ico:before{content:"";position:absolute;inset:12px 10px 14px;border:1.5px solid #c3cfd9;border-radius:3px}
+.empty .ico:after{content:"";position:absolute;left:22px;top:8px;width:7px;height:7px;border:1.5px solid #c3cfd9;border-radius:50%}
+.empty b{display:block;font-weight:500;color:#6d7c8a;font-size:13px;margin-bottom:5px}
+.empty span{font-size:11px}
+.pick-tip{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:var(--deep);color:#fff;padding:7px 14px;border-radius:99px;font-size:12px;display:none;z-index:3}
+.busy{position:absolute;inset:0;z-index:6;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(248,251,253,.82);backdrop-filter:blur(3px);color:#6d7c8a;font-size:12px;letter-spacing:.02em}
+.busy.on{display:flex}
+.busy i{width:26px;height:26px;border:2px solid #d7e1e9;border-top-color:var(--accent);border-radius:50%;animation:bspin .75s linear infinite;display:block}
+@keyframes bspin{to{transform:rotate(360deg)}}
+.pick-tip.on{display:block}
+.infobar{display:flex;align-items:center;gap:12px;margin-top:12px;font-size:11px;color:var(--muted);min-height:18px}
+.infobar .dot{width:3px;height:3px;border-radius:50%;background:#c9d3dc}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,14px);background:#22303c;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;opacity:0;pointer-events:none;transition:.22s;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.16)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.modal{position:fixed;inset:0;background:rgba(28,42,56,.34);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.modal.show{display:flex}
+.card{background:#fff;border-radius:14px;box-shadow:0 24px 70px rgba(20,35,50,.22);width:min(520px,100%);max-height:90vh;overflow:auto;padding:22px 24px}
+.card h3{margin:0 0 4px;font-size:15px;font-weight:600}
+.card .sub{color:var(--muted);font-size:11px;margin-bottom:18px}
+.card .frm{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.card .frm label{width:88px;flex:none;font-size:12px;color:#5a6875}
+.card .frm input[type=number]{flex:1}
+.card .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.card canvas{max-width:100%;max-height:56vh;display:block;margin:0 auto;border:1px solid var(--line);border-radius:8px;cursor:crosshair;background:#fff}
+.swatches{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+.swatch{height:38px;border-radius:7px;border:1px solid rgba(0,0,0,.07);position:relative;cursor:pointer}
+.swatch.on:after{content:"";position:absolute;inset:-3px;border:2px solid var(--deep);border-radius:9px}
+.colorline{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.colorline input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line);border-radius:7px;background:#fff;cursor:pointer}
+.mono{font-variant-numeric:tabular-nums;font-size:12px;color:var(--muted)}
+.tools{display:flex;gap:8px;align-items:center;justify-content:center;margin:12px 0;flex-wrap:wrap}
+.seg{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:6px 12px;font-size:12px}
+.seg button.on{background:var(--deep);color:#fff}
+.gridopts{display:none;gap:8px;margin-top:8px}
+.gridopts.show{display:flex}
+@media(max-width:900px){.layout{grid-template-columns:1fr;height:auto}.panel{border-right:0;border-bottom:1px solid var(--line)}.stage{height:70vh}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="mark"></div>
+  <div class="brand">证件照工作台<small>ID Photo Studio</small></div>
+  <div class="spacer"></div>
+  <div class="badge">本地离线处理 · 图片不上传</div>
+</header>
+
+<main class="layout">
+  <aside class="panel">
+    <section class="group">
+      <h2 class="group-title">参数设置</h2>
+      <div class="row"><label>原图</label><div class="field">
+        <button class="btn" id="pickFile" style="width:100%">选择图片…</button>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+      </div></div>
+      <div class="filename" id="fileName">尚未载入图片</div>
+      <div class="row"><label>规格</label><div class="field"><select id="spec"></select></div></div>
+      <div class="row"><label>背景</label><div class="field">
+        <select id="bg"></select><button class="btn" id="pickerBtn" style="width:70px">取色器</button>
+      </div></div>
+      <div class="row"><label>抠图</label><div class="field"><select id="cut">
+        <option value="standard">标准模式（速度快）</option>
+        <option value="fine">精细模式（发丝优化）</option>
+        <option value="simple">纯色快换（不抠边）</option>
+        <option value="none">不抠图（保留原背景）</option>
+      </select></div></div>
+      <div class="row"><label>排版</label><div class="field"><select id="layout">
+        <option value="single">单张</option>
+        <option value="sheet6">6寸相纸 · 自动排满</option>
+        <option value="sheet6line">6寸相纸 · 带裁剪线</option>
+        <option value="a4">A4 相纸</option>
+        <option value="grid">自定义网格</option>
+      </select></div></div>
+      <div class="gridopts" id="gridOpts">
+        <span style="font-size:12px;color:var(--muted)">列</span><input type="number" id="gridCols" value="4" min="1" max="12" style="width:64px">
+        <span style="font-size:12px;color:var(--muted)">行</span><input type="number" id="gridRows" value="4" min="1" max="12" style="width:64px">
+      </div>
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="noCrop">原图已是头肩照（不裁剪）</label>
+        <label class="check"><input type="checkbox" id="gradient">背景渐变</label>
+        <label class="check"><input type="checkbox" id="protectBody" checked>补回浅色衣领（防白衣被误抠）</label>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2 class="group-title">高级参数（微调）</h2>
+      <div class="slider"><label>抠图强度</label><input type="range" id="cutPower" min="0" max="100" step="1" value="55"><span class="val" id="v_cutPower">55</span></div>
+      <div class="slider"><label>头顶留白</label><input type="range" id="topPad" min="0" max="0.30" step="0.01" value="0.08"><span class="val" id="v_topPad">0.08</span></div>
+      <div class="slider"><label>人脸占比</label><input type="range" id="faceRatio" min="0.35" max="0.90" step="0.01" value="0.65"><span class="val" id="v_faceRatio">0.65</span></div>
+      <div class="slider"><label>人像旋转</label><input type="range" id="rotation" min="-15" max="15" step="0.5" value="0"><span class="val" id="v_rotation">0°</span></div>
+      <div class="slider"><label>左右微调</label><input type="range" id="offX" min="-0.25" max="0.25" step="0.01" value="0"><span class="val" id="v_offX">0.00</span></div>
+      <div class="slider"><label>上下微调</label><input type="range" id="offY" min="-0.25" max="0.25" step="0.01" value="0"><span class="val" id="v_offY">0.00</span></div>
+      <button class="btn full mini" id="resetBtn" style="margin-top:6px">恢复默认参数</button>
+      <p class="hint">肤色与人脸位置自动识别，一般不用手动标定；构图特殊时点「标定人脸」→「自动定位」或手动拖框。墙面没抠干净就调高「抠图强度」；浅色衣服被带走时勾选「补回浅色衣领」，仍不行就用「手动修边」涂回来。</p>
+    </section>
+
+    <section class="group">
+      <h2 class="group-title">单张证件照</h2>
+      <button class="btn primary" id="genBtn">生成单张证件照</button>
+      <div class="btn-pair" style="margin-top:9px">
+        <button class="btn" id="saveBtn">保存单张</button>
+        <button class="btn" id="saveAsBtn">自定义保存…</button>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2 class="group-title">相纸排版</h2>
+      <button class="btn full" id="sheetBtn">生成排版</button>
+      <button class="btn full" id="saveSheetBtn" style="margin-top:9px">保存排版结果</button>
+      <p class="hint">默认 6 寸相纸 300dpi（1200×1800px），按当前规格自动计算行列并居中留边。</p>
+    </section>
+  </aside>
+
+  <section class="stage" id="stage">
+    <div class="stage-head">
+      <div class="tabs">
+        <button class="tab on" data-view="result">结果</button>
+        <button class="tab" data-view="original">原图</button>
+        <button class="tab" data-view="sheet">排版</button>
+      </div>
+      <div class="spacer"></div>
+      <button class="tool-link" id="faceBtn">标定人脸</button>
+      <button class="tool-link" id="retouchBtn">手动修边</button>
+      <button class="tool-link" id="zoomBtn">1:1 预览</button>
+    </div>
+    <div class="viewport" id="viewport">
+      <canvas id="preview" hidden></canvas>
+      <div class="empty" id="empty">
+        <div class="ico"></div>
+        <b>预览区 · 拖放图片到此处</b>
+        <span>支持 JPG / PNG / WEBP，也可直接 Ctrl+V 粘贴</span>
+      </div>
+      <div class="pick-tip" id="pickTip">请点击预览图上的任意位置取色</div>
+      <div class="busy" id="busy"><i></i><span id="busyTxt">正在抠像，请稍候…</span></div>
+    </div>
+    <div class="infobar" id="info"><span>等待载入图片</span></div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- 自定义规格 -->
+<div class="modal" id="mSpec"><div class="card">
+  <h3>自定义规格</h3><div class="sub">按毫米与 DPI 自动换算输出像素</div>
+  <div class="frm"><label>宽度 (mm)</label><input type="number" id="cw" value="30" min="5" max="300" step="1"></div>
+  <div class="frm"><label>高度 (mm)</label><input type="number" id="ch" value="40" min="5" max="300" step="1"></div>
+  <div class="frm"><label>分辨率 DPI</label><input type="number" id="cdpi" value="300" min="72" max="1200" step="1"></div>
+  <p class="hint" id="specCalc">输出像素：354 × 472 px</p>
+  <div class="foot"><button class="btn" data-close="mSpec">取消</button><button class="btn primary" style="width:auto" id="specOk">应用规格</button></div>
+</div></div>
+
+<!-- 取色器 -->
+<div class="modal" id="mColor"><div class="card">
+  <h3>背景取色器</h3><div class="sub">选预设色、自定义颜色，或直接从原图吸取颜色</div>
+  <div class="swatches" id="swatches"></div>
+  <div class="colorline"><input type="color" id="colorPick" value="#ffffff"><span class="mono" id="colorHex">#FFFFFF</span><button class="btn" id="eyedropBtn">从图片吸色</button></div>
+  <div class="foot"><button class="btn" data-close="mColor">取消</button><button class="btn primary" style="width:auto" id="colorOk">应用颜色</button></div>
+</div></div>
+
+<!-- 自定义保存 -->
+<div class="modal" id="mSave"><div class="card">
+  <h3>自定义保存</h3><div class="sub" id="saveSub">单张证件照</div>
+  <div class="frm"><label>文件名</label><input type="text" id="saveName" value="证件照"></div>
+  <div class="frm"><label>格式</label><select id="saveFmt"><option value="png">PNG（无损）</option><option value="jpg">JPG（可设质量）</option></select></div>
+  <div class="frm"><label>JPG 质量</label><input type="range" id="saveQ" min="0.5" max="1" step="0.01" value="0.95" style="flex:1"><span class="mono" id="saveQv">95%</span></div>
+  <div class="frm"><label>写入 DPI</label><select id="saveDpi"><option value="300">300 dpi（打印）</option><option value="0">不写入</option></select></div>
+  <p class="hint" id="saveInfo"></p>
+  <div class="foot"><button class="btn" data-close="mSave">取消</button><button class="btn primary" style="width:auto" id="saveOk">保存文件</button></div>
+</div></div>
+
+<!-- 人脸标定 -->
+<div class="modal" id="mFace"><div class="card" style="width:min(720px,100%)">
+  <h3>标定人脸</h3><div class="sub">在原图上按住鼠标拖出一个方框，圈住额头到下巴的脸部区域</div>
+  <canvas id="faceCanvas"></canvas>
+  <div class="tools"><button class="btn mini" id="autoFaceBtn">自动检测 / 恢复默认</button><span class="mono" id="faceInfo"></span></div>
+  <div class="foot"><button class="btn" data-close="mFace">取消</button><button class="btn primary" style="width:auto" id="faceOk">应用并重新生成</button></div>
+</div></div>
+
+<!-- 手动修边 -->
+<div class="modal" id="mRetouch"><div class="card" style="width:min(760px,100%)">
+  <h3>手动修边</h3><div class="sub">擦除没抠干净的背景残留，或把被误抠掉的白色衣服涂回来。拖动鼠标连续涂抹</div>
+  <div class="tools">
+    <div class="seg"><button class="on" data-brush="erase">擦除背景</button><button data-brush="restore">恢复人像</button></div>
+    <span class="mono">笔刷</span><input type="range" id="brushSize" min="4" max="90" step="1" value="26" style="width:130px;accent-color:var(--deep)">
+    <button class="btn mini" id="brushReset">重置蒙版</button>
+  </div>
+  <canvas id="retouchCanvas"></canvas>
+  <div class="foot"><button class="btn" data-close="mRetouch">取消</button><button class="btn primary" style="width:auto" id="retouchOk">完成并重新生成</button></div>
+</div></div>
+
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s), $$=s=>Array.prototype.slice.call(document.querySelectorAll(s));
+const SPECS=[
+ {k:'s1',label:'小一寸 22x32mm (260x378px)',mm:[22,32],px:[260,378]},
+ {k:'s2',label:'一寸 25x35mm (295x413px)',mm:[25,35],px:[295,413]},
+ {k:'s3',label:'大一寸 33x48mm (390x567px)',mm:[33,48],px:[390,567]},
+ {k:'s4',label:'小二寸 35x45mm (413x531px)',mm:[35,45],px:[413,531]},
+ {k:'s5',label:'二寸 35x49mm (413x579px)',mm:[35,49],px:[413,579]},
+ {k:'s6',label:'大二寸 35x53mm (413x626px)',mm:[35,53],px:[413,626]},
+ {k:'passport',label:'护照 33x48mm (390x567px)',mm:[33,48],px:[390,567]},
+ {k:'visa',label:'签证 30x40mm (354x472px)',mm:[30,40],px:[354,472]}
+];
+const BGS=[['白底','#ffffff'],['蓝底','#438edb'],['红底','#ff0000'],['深蓝底','#1b4a8a'],['浅蓝底','#b5d8f0'],['灰底','#808080'],['浅灰底','#d3d9df'],['绿底','#00a651'],['黄底','#ffe600']];
+const DEF={cutPower:55,topPad:.08,faceRatio:.65,rotation:0,offX:0,offY:0};
+const S={src:null,srcCanvas:null,srcId:0,srcName:'',person:null,personBase:null,maskKey:'',face:null,single:null,sheet:null,bg:'#ffffff',customSpec:null,view:'result',picking:false,zoom:false,saveTarget:'single'};
+let toastTimer=null;
+
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('on'),2200);}
+function showBusy(msg){const b=$('#busy');if(msg)$('#busyTxt').textContent=msg;b.classList.add('on');}
+function hideBusy(){$('#busy').classList.remove('on');}
+function openM(id){$('#'+id).classList.add('show');}
+function closeM(id){$('#'+id).classList.remove('show');}
+$$('[data-close]').forEach(b=>b.addEventListener('click',()=>closeM(b.getAttribute('data-close'))));
+$$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$$('.modal').forEach(m=>m.classList.remove('show'));});
+
+/* ---------- 初始化控件 ---------- */
+function initControls(){
+ const sp=$('#spec');
+ SPECS.forEach(s=>{const o=document.createElement('option');o.value=s.k;o.textContent=s.label;sp.appendChild(o);});
+ const custom=new Option('自定义规格…','__custom');sp.appendChild(custom);sp.value='s1';
+ const bg=$('#bg');
+ BGS.forEach((b,i)=>{const o=new Option(b[0],String(i));bg.appendChild(o);});
+ bg.appendChild(new Option('自定义…','__custom'));bg.value='0';
+ const sw=$('#swatches');
+ BGS.forEach((b,i)=>{const d=document.createElement('div');d.className='swatch';d.style.background=b[1];d.title=b[0];d.dataset.i=i;d.addEventListener('click',()=>{selectSwatch(i);});sw.appendChild(d);});
+ const rng=['cutPower','topPad','faceRatio','rotation','offX','offY'];
+ rng.forEach(id=>{
+  const el=$('#'+id);
+  const show=()=>{$('#v_'+id).textContent=id==='cutPower'?String(+el.value):id==='rotation'?(+el.value).toFixed(1).replace(/\.0$/,'')+'°':(+el.value).toFixed(2);};
+  show();el.addEventListener('input',()=>{show();queueRegen();});
+ });
+ ['spec','bg','cut','layout','noCrop','gradient','protectBody','gridCols','gridRows'].forEach(id=>{
+  $('#'+id).addEventListener('change',()=>{onControlChange(id);});
+ });
+ $('#pickerBtn').addEventListener('click',()=>openColor());
+ $('#colorPick').addEventListener('input',e=>{$('#colorHex').textContent=e.target.value.toUpperCase();selectSwatch(-1);});
+ $('#eyedropBtn').addEventListener('click',()=>{
+  if(!S.srcCanvas){toast('请先载入图片');return;}
+  closeM('mColor');S.picking=true;S.view='original';renderPreview();$('#pickTip').classList.add('on');
+ });
+ $('#colorOk').addEventListener('click',()=>{
+  S.bg=$('#colorPick').value;
+  syncBgSelect();closeM('mColor');queueRegen();toast('背景色已更新');
+ });
+ $('#cw').addEventListener('input',calcSpec);$('#ch').addEventListener('input',calcSpec);$('#cdpi').addEventListener('input',calcSpec);
+ $('#specOk').addEventListener('click',()=>{
+  const w=+$('#cw').value,h=+$('#ch').value,dpi=+$('#cdpi').value;
+  if(!(w>0&&h>0&&dpi>0)){toast('请输入有效尺寸');return;}
+  S.customSpec={k:'__customSpec',label:'自定义 '+w+'x'+h+'mm ('+Math.round(w/25.4*dpi)+'x'+Math.round(h/25.4*dpi)+'px)',mm:[w,h],px:[Math.round(w/25.4*dpi),Math.round(h/25.4*dpi)]};
+  let o=$('#spec option[value="__customSpec"]');
+  if(!o){o=new Option('','__customSpec');$('#spec').insertBefore(o,$('#spec option[value="__custom"]'));}
+  o.textContent=S.customSpec.label;$('#spec').value='__customSpec';closeM('mSpec');queueRegen();toast('已应用自定义规格');
+ });
+ $('#saveQ').addEventListener('input',()=>{$('#saveQv').textContent=Math.round(+$('#saveQ').value*100)+'%';});
+ $('#saveFmt').addEventListener('change',updateSaveInfo);
+ $('#saveOk').addEventListener('click',doCustomSave);
+ $('#resetBtn').addEventListener('click',()=>{
+  Object.keys(DEF).forEach(k=>{$('#'+k).value=DEF[k];$('#'+k).dispatchEvent(new Event('input'));});
+  $('#protectBody').checked=true;
+  toast('已恢复默认参数');
+ });
+ $('#pickFile').addEventListener('click',()=>$('#fileInput').click());
+ $('#fileInput').addEventListener('change',e=>{if(e.target.files[0])loadFile(e.target.files[0]);e.target.value='';});
+ $('#genBtn').addEventListener('click',()=>generate(true));
+ $('#saveBtn').addEventListener('click',()=>{if(!S.single)return toast('请先生成单张证件照');download(S.single,'证件照_'+spec().px.join('x'),'png',.95,300,true);});
+ $('#saveAsBtn').addEventListener('click',()=>{if(!S.single)return toast('请先生成单张证件照');S.saveTarget='single';openSave('single');});
+ $('#sheetBtn').addEventListener('click',()=>generateSheet(true));
+ $('#saveSheetBtn').addEventListener('click',()=>{if(!S.sheet)return toast('请先生成排版');S.saveTarget='sheet';openSave('sheet');});
+ $('#faceBtn').addEventListener('click',openFace);
+ $('#retouchBtn').addEventListener('click',openRetouch);
+ $('#zoomBtn').addEventListener('click',()=>{
+  S.zoom=!S.zoom;$('#zoomBtn').textContent=S.zoom?'适应窗口':'1:1 预览';
+  $('#preview').style.maxWidth=S.zoom?'none':'100%';$('#preview').style.maxHeight=S.zoom?'none':'100%';
+  vp.style.overflow=S.zoom?'auto':'hidden';vp.style.alignItems=S.zoom?'flex-start':'center';
+ });
+ $$('.tab').forEach(t=>t.addEventListener('click',()=>{
+  const v=t.dataset.view;
+  if(v==='result'&&!S.single)return toast('请先生成单张证件照');
+  if(v==='sheet'&&!S.sheet)return toast('请先生成排版');
+  if(v==='original'&&!S.srcCanvas)return toast('请先载入图片');
+  S.view=v;$$('.tab').forEach(x=>x.classList.toggle('on',x===t));renderPreview();
+ }));
+}
+function selectSwatch(i){
+ $$('#swatches .swatch').forEach((d,k)=>d.classList.toggle('on',k===i));
+ if(i>=0){$('#colorPick').value=BGS[i][1];$('#colorHex').textContent=BGS[i][1].toUpperCase();}
+}
+function syncBgSelect(){
+ let idx=-1;BGS.forEach((b,i)=>{if(b[1].toLowerCase()===S.bg.toLowerCase())idx=i;});
+ if(idx>=0){$('#bg').value=String(idx);}else{$('#bg').value='__custom';}
+}
+function openColor(){
+ selectSwatch(-1);
+ let idx=-1;BGS.forEach((b,i)=>{if(b[1].toLowerCase()===S.bg.toLowerCase())idx=i;});
+ $('#colorPick').value=S.bg;$('#colorHex').textContent=S.bg.toUpperCase();
+ if(idx>=0)selectSwatch(idx);
+ openM('mColor');
+}
+function calcSpec(){
+ const w=+$('#cw').value,h=+$('#ch').value,d=+$('#cdpi').value;
+ $('#specCalc').textContent='输出像素：'+Math.round(w/25.4*d)+' × '+Math.round(h/25.4*d)+' px';
+}
+function onControlChange(id){
+ if(id==='spec'&&$('#spec').value==='__custom'){
+  $('#spec').value=S.customSpec?'__customSpec':'s1';
+  $('#cw').value=S.customSpec?S.customSpec.mm[0]:30;$('#ch').value=S.customSpec?S.customSpec.mm[1]:40;$('#cdpi').value=300;
+  calcSpec();openM('mSpec');return;
+ }
+ if(id==='bg'&&$('#bg').value==='__custom'){syncBgSelect();openColor();return;}
+ if(id==='bg'){S.bg=BGS[+$('#bg').value][1];}
+ if(id==='layout'){$('#gridOpts').classList.toggle('show',$('#layout').value==='grid');}
+ queueRegen();
+}
+function spec(){const k=$('#spec').value;if(k==='__customSpec')return S.customSpec;return SPECS.find(s=>s.k===k)||SPECS[0];}
+function params(){return{
+ spec:spec(),bg:S.bg,cut:$('#cut').value,layout:$('#layout').value,
+ noCrop:$('#noCrop').checked,gradient:$('#gradient').checked,
+ topPad:+$('#topPad').value,faceRatio:+$('#faceRatio').value,rotation:+$('#rotation').value,
+ offX:+$('#offX').value,offY:+$('#offY').value};}
+
+/* ---------- 载入图片 ---------- */
+function loadFile(file){
+ if(!file||!/^image\//.test(file.type))return toast('请选择图片文件');
+ const url=URL.createObjectURL(file),img=new Image();
+ img.onload=()=>{
+  URL.revokeObjectURL(url);
+  const max=1400,k=Math.min(1,max/Math.max(img.width,img.height));
+  const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*k));c.height=Math.max(1,Math.round(img.height*k));
+  c.getContext('2d',{willReadFrequently:true}).drawImage(img,0,0,c.width,c.height);
+  S.src=img;S.srcCanvas=c;S.srcId++;S.srcName=file.name;
+  S.person=null;S.personBase=null;S.maskKey='';S.face=null;S.faceManual=false;S.segFace=null;S.segId=-1;S.single=null;S.sheet=null;S.view='original';
+  $('#fileName').textContent=file.name+' · '+img.width+'×'+img.height+'px';
+  $$('.tab').forEach(x=>x.classList.toggle('on',x.dataset.view==='original'));
+  renderPreview();updateInfo();toast('已载入图片，点击生成单张证件照');
+ };
+ img.onerror=()=>toast('图片读取失败');
+ img.src=url;
+}
+const vp=$('#viewport');
+['dragenter','dragover'].forEach(ev=>vp.addEventListener(ev,e=>{e.preventDefault();vp.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>vp.addEventListener(ev,e=>{e.preventDefault();if(ev==='dragleave'&&vp.contains(e.relatedTarget))return;vp.classList.remove('drag');}));
+vp.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)loadFile(f);});
+document.addEventListener('paste',e=>{
+ const its=e.clipboardData&&e.clipboardData.items;if(!its)return;
+ for(let i=0;i<its.length;i++){if(its[i].type.indexOf('image/')===0){loadFile(its[i].getAsFile());break;}}
+});
+
+/* ---------- 人脸定位 ---------- */
+function defaultFace(){
+ const w=S.srcCanvas.width,h=S.srcCanvas.height;
+ return {x:w*.32,y:h*.20,w:w*.36,h:h*.36};
+}
+async function autoFace(){
+ if(!S.srcCanvas)return null;
+ if(typeof FaceDetector!=='undefined'){
+  try{const fd=new FaceDetector({fastMode:false,maxDetectedFaces:1});const fs=await fd.detect(S.srcCanvas);
+   if(fs.length){const b=fs[0].boundingBox;return {x:b.x,y:b.y,w:b.width,h:b.height};}
+  }catch(e){}
+ }
+ return defaultFace();
+}
+async function ensureFace(){if(!S.face||!S.face.w)S.face=await autoFace();}
+
+/* ========== 抠像内核（v10：软边 α 抠像 + 墙色高光剥离） ========== */
+/* ============================================================
+   证件照抠像内核 v10 （纯函数，无 DOM 依赖）
+   思路：背景不是一个「光滑的色场」，而是「一块块不均匀光照的墙面」。
+   因此用 EM 式迭代：先粗分 → 用已确认的背景像素局部均值重估背景色 →
+   再分 → 收敛。墙面斑块/明暗带因此能被整块吃掉，而不是停在边界上。
+   边缘再做 α 抠像 + 去污染，解决头发与背景的过渡。
+   ============================================================ */
+var SegCore = (function () {
+  'use strict';
+
+  function lum(r, g, b) { return r * 0.299 + g * 0.587 + b * 0.114; }
+  function med(a) { a.sort(function (x, y) { return x - y; }); return a[a.length >> 1] || 0; }
+  function clamp255(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
+
+  function quantMode(buf) {
+    var hist = new Map(), n, best = null;
+    for (n = 0; n < buf.length; n += 3) {
+      var k = ((buf[n] >> 4) << 8) | ((buf[n + 1] >> 4) << 4) | (buf[n + 2] >> 4);
+      var e = hist.get(k); if (!e) { e = [0, 0, 0, 0]; hist.set(k, e); }
+      e[0]++; e[1] += buf[n]; e[2] += buf[n + 1]; e[3] += buf[n + 2];
+    }
+    hist.forEach(function (e) { if (!best || e[0] > best[0]) best = e; });
+    if (!best) return [128, 128, 128];
+    return [best[1] / best[0], best[2] / best[0], best[3] / best[0]];
+  }
+
+  function fillLine(arr, valid, n) {
+    var prev = -1, i, k, c, t;
+    for (i = 0; i < n; i++) if (valid[i]) {
+      if (prev < 0) { for (k = 0; k < i; k++) for (c = 0; c < 3; c++) arr[k * 3 + c] = arr[i * 3 + c]; }
+      else for (k = prev + 1; k < i; k++) { t = (k - prev) / (i - prev); for (c = 0; c < 3; c++) arr[k * 3 + c] = arr[prev * 3 + c] + (arr[i * 3 + c] - arr[prev * 3 + c]) * t; }
+      prev = i;
+    }
+    if (prev < 0) { for (i = 0; i < n; i++) for (c = 0; c < 3; c++) arr[i * 3 + c] = 128; return; }
+    for (k = prev + 1; k < n; k++) for (c = 0; c < 3; c++) arr[k * 3 + c] = arr[prev * 3 + c];
+  }
+
+  /* ---------- 肤色掩膜：背景扩散的硬墙 ---------- */
+  function skinMask(d, w, h) {
+    var n = w * h, m = new Uint8Array(n), i, j, r, g, b, cb, cr;
+    for (i = 0; i < n; i++) {
+      j = i * 4; r = d[j]; g = d[j + 1]; b = d[j + 2];
+      /* (r-b)/r 是核心判据：真人肤色≈0.37，暖白墙≈0.16 */
+      if (r > 70 && g > 35 && b > 15 && r - g > 22 && (r - b) > 0.22 * r) {
+        cb = 128 - .168736 * r - .331264 * g + .5 * b;
+        cr = 128 + .5 * r - .418688 * g - .081312 * b;
+        if (cb >= 70 && cb <= 132 && cr >= 130 && cr <= 182 && cr - cb > 12) m[i] = 1;
+      }
+    }
+    var out = new Uint8Array(n), y, x, yy, xx, ya, yb, xa, xb;
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+      if (!m[y * w + x]) continue;
+      ya = y > 0 ? y - 1 : 0; yb = y < h - 1 ? y + 1 : h - 1;
+      xa = x > 0 ? x - 1 : 0; xb = x < w - 1 ? x + 1 : w - 1;
+      for (yy = ya; yy <= yb; yy++) for (xx = xa; xx <= xb; xx++) out[yy * w + xx] = 1;
+    }
+    return out;
+  }
+
+  /* ---------- 粗背景色场：行左右边缘插值 + 顶部列采样 ---------- */
+  function baseModel(d, w, h, skin) {
+    var n = w * h, i, x, y, j;
+    var topH = Math.max(4, Math.round(h * 0.06)), buf = [];
+    for (y = 0; y < topH; y += 2) for (x = 0; x < w; x += 2) {
+      i = y * w + x; if (skin[i]) continue; j = i * 4;
+      buf.push(d[j], d[j + 1], d[j + 2]);
+    }
+    var M = quantMode(buf), Mmin = Math.min(M[0], M[1], M[2]);
+    function nearM(idx) {
+      var k = idx * 4, a = d[k] - M[0], b = d[k + 1] - M[1], c = d[k + 2] - M[2];
+      if (a * a + b * b + c * c > 10000) return false;   /* 100：粗筛 */
+      /* 比墙明显暗的（深色衣服/头发贴在画面边缘）不能当墙面采样，
+         否则模型会把衣服色当成墙色，底部的深色衣服会被整片吃掉 */
+      return Math.min(d[k], d[k + 1], d[k + 2]) >= Mmin - 65;
+    }
+    var band = Math.max(3, Math.round(w * 0.05));
+    var L = new Float32Array(h * 3), R = new Float32Array(h * 3);
+    var vL = new Uint8Array(h), vR = new Uint8Array(h);
+    for (y = 0; y < h; y++) {
+      var rs = [], gs = [], bs = [], rs2 = [], gs2 = [], bs2 = [], i1, i2;
+      for (x = 0; x < band; x += 2) {
+        i1 = y * w + x; i2 = y * w + (w - 1 - x);
+        if (!skin[i1] && nearM(i1)) { rs.push(d[i1 * 4]); gs.push(d[i1 * 4 + 1]); bs.push(d[i1 * 4 + 2]); }
+        if (!skin[i2] && nearM(i2)) { rs2.push(d[i2 * 4]); gs2.push(d[i2 * 4 + 1]); bs2.push(d[i2 * 4 + 2]); }
+      }
+      if (rs.length >= 4) {
+        var mr = med(rs), mg = med(gs), mb = med(bs);
+        if (Math.min(mr, mg, mb) <= Mmin + 16) { L[y * 3] = mr; L[y * 3 + 1] = mg; L[y * 3 + 2] = mb; vL[y] = 1; }
+      }
+      if (rs2.length >= 4) {
+        var mr2 = med(rs2), mg2 = med(gs2), mb2 = med(bs2);
+        if (Math.min(mr2, mg2, mb2) <= Mmin + 16) { R[y * 3] = mr2; R[y * 3 + 1] = mg2; R[y * 3 + 2] = mb2; vR[y] = 1; }
+      }
+    }
+    fillLine(L, vL, h); fillLine(R, vR, h);
+    var C = new Float32Array(w * 3), vC = new Uint8Array(w);
+    for (x = 0; x < w; x++) {
+      var cr = [], cg = [], cb2 = [];
+      for (y = 0; y < topH; y += 2) { i = y * w + x; if (skin[i] || !nearM(i)) continue; cr.push(d[i * 4]); cg.push(d[i * 4 + 1]); cb2.push(d[i * 4 + 2]); }
+      if (cr.length >= 3) { C[x * 3] = med(cr); C[x * 3 + 1] = med(cg); C[x * 3 + 2] = med(cb2); vC[x] = 1; }
+    }
+    fillLine(C, vC, w);
+    var B = new Float32Array(n * 3), decayDen = Math.max(1, h * 0.55);
+    for (y = 0; y < h; y++) {
+      var hy = y * 3, t, decay = Math.max(0, 1 - y / decayDen), c, base, topv;
+      for (x = 0; x < w; x++) {
+        t = w > 1 ? x / (w - 1) : 0;
+        var o = (y * w + x) * 3, cx = x * 3;
+        for (c = 0; c < 3; c++) {
+          base = L[hy + c] + (R[hy + c] - L[hy + c]) * t;
+          topv = L[c] + (R[c] - L[c]) * t;
+          B[o + c] = base + (C[cx + c] - topv) * decay;
+        }
+      }
+    }
+    return { B: B, M: M };
+  }
+
+  /* ---------- 最近背景色场 ----------
+     盒式均值会把「货架阴影里的暗墙」和「货架上方的亮墙」平均成一个中间色，
+     于是阴影区看起来比背景亮/暗一截，被判成前景 → 肩头留下灰色楔形块。
+     改用「最近的已确认背景像素的颜色」：阴影区拿到的就是它自己脚边那块暗墙的颜色，
+     偏差立刻回到噪声量级。远处（人体深处）才退回盒式场。 */
+  function nearestField(d, bg, w, h, fallback) {
+    var n = w * h, i, x, y, k, m, nx, ny, t, nd;
+    var idx = new Int32Array(n), dist = new Float32Array(n);
+    idx.fill(-1); dist.fill(1e9);
+    for (i = 0; i < n; i++) if (bg[i] < 128) { idx[i] = i; dist[i] = 0; }
+    var DX = [-1, -1, 0, 1, 1, 1, 0, -1], DY = [0, -1, -1, -1, 0, 1, 1, 1];
+    for (var pass = 0; pass < 1; pass++) {
+      for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+        k = y * w + x; if (idx[k] === k) continue;
+        for (t = 0; t < 4; t++) {
+          nx = x + DX[t]; ny = y + DY[t];
+          if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+          m = ny * w + nx; if (idx[m] < 0) continue;
+          nd = dist[m] + (DX[t] && DY[t] ? 1.4142 : 1);
+          if (nd < dist[k]) { dist[k] = nd; idx[k] = idx[m]; }
+        }
+      }
+      for (y = h - 1; y >= 0; y--) for (x = w - 1; x >= 0; x--) {
+        k = y * w + x; if (idx[k] === k) continue;
+        for (t = 4; t < 8; t++) {
+          nx = x + DX[t]; ny = y + DY[t];
+          if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+          m = ny * w + nx; if (idx[m] < 0) continue;
+          nd = dist[m] + (DX[t] && DY[t] ? 1.4142 : 1);
+          if (nd < dist[k]) { dist[k] = nd; idx[k] = idx[m]; }
+        }
+      }
+    }
+    var B = new Float32Array(n * 3), far = 90;
+    for (i = 0; i < n; i++) {
+      var s = idx[i];
+      if (s < 0 || dist[i] > far) {
+        B[i * 3] = fallback[i * 3] || 0; B[i * 3 + 1] = fallback[i * 3 + 1] || 0; B[i * 3 + 2] = fallback[i * 3 + 2] || 0;
+      } else {
+        B[i * 3] = d[s * 4]; B[i * 3 + 1] = d[s * 4 + 1]; B[i * 3 + 2] = d[s * 4 + 2];
+      }
+    }
+    /* 3×3 轻平滑，压掉单像素噪声（跨边界只有 1px，不会把阴影重新抹平） */
+    var S = new Float32Array(n * 3);
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+      var o = (y * w + x) * 3, cnt = 0, r0 = 0, g0 = 0, b0 = 0;
+      for (ny = y - 1; ny <= y + 1; ny++) {
+        if (ny < 0 || ny >= h) continue;
+        for (nx = x - 1; nx <= x + 1; nx++) {
+          if (nx < 0 || nx >= w) continue;
+          var q = (ny * w + nx) * 3; r0 += B[q]; g0 += B[q + 1]; b0 += B[q + 2]; cnt++;
+        }
+      }
+      S[o] = r0 / cnt; S[o + 1] = g0 / cnt; S[o + 2] = b0 / cnt;
+    }
+    return S;
+  }
+
+  /* ---------- 局部背景场：已确认背景像素的窗口均值（1/4 网格 + 双线性上采样） ----------
+     这是「吃掉不均匀墙面斑块」的关键：墙面斑块的颜色由它自己周围的墙像素决定，
+     而不是由全图拟合出的光滑面决定 */
+  function localField(d, bg, w, h, radius, fallback) {
+    var ds = 4, gw = Math.max(2, Math.ceil(w / ds)), gh = Math.max(2, Math.ceil(h / ds));
+    var acc = new Float32Array(gw * gh * 3), wgt = new Float32Array(gw * gh), i, x, y;
+    for (y = 0; y < h; y++) {
+      var gy = (y / ds) | 0;
+      for (x = 0; x < w; x++) {
+        i = y * w + x;
+        if (bg[i] >= 128) continue;   /* 只要背景（alpha=0）像素 */
+        var g = gy * gw + ((x / ds) | 0), j = i * 4;
+        acc[g * 3] += d[j]; acc[g * 3 + 1] += d[j + 1]; acc[g * 3 + 2] += d[j + 2]; wgt[g]++;
+      }
+    }
+    /* 网格积分图做盒式均值 */
+    var rs = Math.max(1, Math.round(radius / ds));
+    var ii = new Float64Array((gw + 1) * (gh + 1) * 3), iw = new Float64Array((gw + 1) * (gh + 1));
+    for (y = 0; y < gh; y++) {
+      for (x = 0; x < gw; x++) {
+        var a = (y * gw + x), p = ((y + 1) * (gw + 1) + x + 1);
+        iw[p] = wgt[a] + iw[p - 1] + iw[p - gw - 1] - iw[p - gw - 2];
+        for (var c = 0; c < 3; c++) ii[p * 3 + c] = acc[a * 3 + c] + ii[(p - 1) * 3 + c] + ii[(p - gw - 1) * 3 + c] - ii[(p - gw - 2) * 3 + c];
+      }
+    }
+    var F = new Float32Array(gw * gh * 3);
+    for (y = 0; y < gh; y++) {
+      var y0 = Math.max(0, y - rs), y1 = Math.min(gh - 1, y + rs);
+      for (x = 0; x < gw; x++) {
+        var x0 = Math.max(0, x - rs), x1 = Math.min(gw - 1, x + rs);
+        var o = (y * gw + x) * 3;
+        var A = (y1 + 1) * (gw + 1) + x1 + 1, Bq = (y0) * (gw + 1) + x1 + 1;
+        var Cc = (y1 + 1) * (gw + 1) + x0, D = (y0) * (gw + 1) + x0;
+        var cnt = iw[A] - iw[Bq] - iw[Cc] + iw[D];
+        if (cnt < 6) { /* 附近没有背景样本 → 用粗模型兜底 */
+          var fx = Math.min(w - 1, x * ds), fy = Math.min(h - 1, y * ds), fo = (fy * w + fx) * 3;
+          F[o] = fallback[fo]; F[o + 1] = fallback[fo + 1]; F[o + 2] = fallback[fo + 2];
+        } else {
+          for (var c2 = 0; c2 < 3; c2++) F[o + c2] = (ii[A * 3 + c2] - ii[Bq * 3 + c2] - ii[Cc * 3 + c2] + ii[D * 3 + c2]) / cnt;
+        }
+      }
+    }
+    /* 双线性上采样到全分辨率 */
+    var out = new Float32Array(w * h * 3);
+    for (y = 0; y < h; y++) {
+      var fy2 = y / ds - 0.5, yA = Math.floor(fy2), ty = fy2 - yA;
+      var ya2 = Math.max(0, Math.min(gh - 1, yA)), yb2 = Math.max(0, Math.min(gh - 1, yA + 1));
+      for (x = 0; x < w; x++) {
+        var fx2 = x / ds - 0.5, xA = Math.floor(fx2), tx = fx2 - xA;
+        var xa2 = Math.max(0, Math.min(gw - 1, xA)), xb2 = Math.max(0, Math.min(gw - 1, xA + 1));
+        var o1 = (ya2 * gw + xa2) * 3, o2 = (ya2 * gw + xb2) * 3, o3 = (yb2 * gw + xa2) * 3, o4 = (yb2 * gw + xb2) * 3;
+        var t = (y * w + x) * 3;
+        for (var c3 = 0; c3 < 3; c3++) {
+          var top = F[o1 + c3] + (F[o2 + c3] - F[o1 + c3]) * tx;
+          var bot = F[o3 + c3] + (F[o4 + c3] - F[o3 + c3]) * tx;
+          out[t + c3] = top + (bot - top) * ty;
+        }
+      }
+    }
+    return out;
+  }
+
+  /* ---------- 从四边扩散出背景 ---------- */
+  function grow(d, w, h, B, skin, T, darkGuard) {
+    var n = w * h, i, x, y, j, o;
+    var alpha = new Uint8Array(n); alpha.fill(255);
+    var seen = new Uint8Array(n), q = new Int32Array(n), head = 0, tail = 0;
+    var T2 = T * T * 3, Tdark = T * T * 3;
+
+    function ok(i0) {
+      if (seen[i0] || skin[i0]) return false;
+      j = i0 * 4; o = i0 * 3;
+      var a = d[j] - B[o], b = d[j + 1] - B[o + 1], c = d[j + 2] - B[o + 2];
+      var dd = a * a + b * b + c * c;
+      if (dd > T2) return false;
+      /* 比背景暗很多 → 是头发/深色衣物，别吃掉 */
+      if (d[j] * .299 + d[j + 1] * .587 + d[j + 2] * .114 + darkGuard < B[o] * .299 + B[o + 1] * .587 + B[o + 2] * .114) {
+        if (dd > Tdark * 0.4) return false;
+      }
+      return true;
+    }
+    function push(i0) {
+      seen[i0] = 1; alpha[i0] = 0; q[tail++] = i0;
+    }
+    /* 只从「上、左、右」三边播种：证件照底边一定是身体（浅色衬衫从底边灌进去
+       就会被整片抠掉）。底边若真有墙面，也会从左/右列扩散进来 */
+    for (x = 0; x < w; x++) { if (ok(x)) push(x); }
+    for (y = 0; y < h; y++) { if (ok(y * w)) push(y * w); if (ok(y * w + w - 1)) push(y * w + w - 1); }
+    while (head < tail) {
+      i = q[head++]; x = i % w;
+      if (x > 0 && ok(i - 1)) push(i - 1);
+      if (x < w - 1 && ok(i + 1)) push(i + 1);
+      if (i >= w && ok(i - w)) push(i - w);
+      if (i < w * (h - 1) && ok(i + w)) push(i + w);
+    }
+    return alpha;
+  }
+
+  /* 背景像素相对局部场的残差 p85 → 真实墙面噪声 */
+  function noiseOf(d, w, h, B, bg) {
+    var res = [], i, j, o, a, b, c;
+    for (i = 0; i < w * h; i += 2) {
+      if (bg[i] >= 128) continue;
+      j = i * 4; o = i * 3;
+      a = d[j] - B[o]; b = d[j + 1] - B[o + 1]; c = d[j + 2] - B[o + 2];
+      res.push(Math.sqrt(a * a + b * b + c * c));
+    }
+    if (!res.length) return 14;
+    res.sort(function (p, q) { return p - q; });
+    return res[Math.min(res.length - 1, Math.floor(res.length * 0.85))] || 14;
+  }
+
+  /* ---------- 主流程 ---------- */
+  function segment(d, w, h, opt) {
+    opt = opt || {};
+    var power = opt.power == null ? 0.55 : opt.power;
+    var fine = !!opt.fine;
+    var n = w * h, i;
+
+    var skin = skinMask(d, w, h);
+    var bm = baseModel(d, w, h, skin);
+    var B = bm.B;
+
+    /* 迭代：粗分 → 用已确认背景重估局部背景场 → 再分 */
+    var T = 26 + 10 * power;
+    var bg = grow(d, w, h, B, skin, T, 24);
+    if (opt.debug) { SegCore._dbg0 = { bg0: bg, B0: B, T0: T }; }
+    var loops = opt.iters == null ? 3 : opt.iters;
+    for (var it = 0; it < loops; it++) {
+      var F = localField(d, bg, w, h, Math.max(10, Math.min(w, h) * 0.05), B);
+      var nz = noiseOf(d, w, h, F, bg);
+      /* 阈值：墙面自身噪声的 1.3 倍 + 小余量，再按强度缩放；上限防吃人 */
+      T = Math.max(9, Math.min(34, nz * 1.30 + 3)) * (0.82 + 0.5 * power);
+      /* 分类用最近背景色场，噪声估计仍用盒式场（盒式场更接近「整体墙面不均」的量级） */
+      var Bn = nearestField(d, bg, w, h, F);
+      /* 只在「两个场明显不一致」时改用最近色场 —— 不一致说明盒式均值被带偏了
+         （典型的：货架/窗台阴影里的暗墙被上方亮墙平均成中间色）。
+         一致的地方仍用更平滑的盒式场，避免把浅色衣物/发梢误判成墙。 */
+      var Bmix = new Float32Array(n * 3);
+      for (i = 0; i < n; i++) {
+        var o3 = i * 3;
+        var lf = F[o3] * .299 + F[o3 + 1] * .587 + F[o3 + 2] * .114;
+        var ln = Bn[o3] * .299 + Bn[o3 + 1] * .587 + Bn[o3 + 2] * .114;
+        var src = (lf - ln) > 18 ? Bn : F;
+        Bmix[o3] = src[o3]; Bmix[o3 + 1] = src[o3 + 1]; Bmix[o3 + 2] = src[o3 + 2];
+      }
+      bg = grow(d, w, h, Bmix, skin, T * 0.85, 26);
+      B = Bmix;
+    }
+
+    var dbg = opt.debug ? {} : null;
+    var a2 = fillHoles(bg, w, h, d, B, T);
+    if (dbg) dbg.grow = bg;
+    if (opt.protectBody) a2 = repairGaps(a2, d, w, h, B, T, opt.face);
+    a2 = keepMainFG(a2, w, h);
+    a2 = dropIslands(a2, d, w, h, B, T);
+    if (dbg) dbg.island = a2;
+    a2 = killSpecks(a2, w, h);
+    a2 = fillHoles(a2, w, h, d, B, T);
+    a2 = trimWallLike(a2, d, w, h, B, T);
+    if (dbg) dbg.trim = a2;
+    a2 = killWallBands(a2, d, w, h, B, T);
+    /* 连做两轮：先剪掉细横线，剩下的短桩第二轮才够「细」，一起清掉 */
+    a2 = killBands(a2, d, w, h, B, T);
+    a2 = killBands(a2, d, w, h, B, T);
+    a2 = dropIslands(a2, d, w, h, B, T);
+    a2 = stripThin(a2, d, w, h, T);
+    /* 轮廓整理：3×3 众数滤波（≈ 中值）。低对比处（浅肤色贴浅色墙）阈值会逐行翻来
+       覆去，轮廓就长出一排 1~2px 的横齿和缺口——放大看像「梳子」。众数滤波只把
+       占多数的邻居意见采纳，细齿和针孔一起消失，大形状不动。 */
+    a2 = majority(a2, w, h);
+    a2 = majority(a2, w, h);
+    a2 = healSkinBites(a2, skin, w, h);
+    a2 = peelWallGlare(a2, d, w, h, skin);
+    if (dbg) { dbg.strip = a2; dbg.T = T; dbg.B = B; dbg.skin = skin; }
+
+    var out = new Uint8ClampedArray(d.length);
+    for (i = 0; i < n * 4; i++) out[i] = d[i];
+    matte(out, a2, d, w, h, B, T, fine);
+    dropFaint(out, d, w, h, B, T);
+    despeckleAlpha(out, w, h, d, B, T);
+    if (dbg) { dbg.alpha = out; SegCore._dbg = dbg; }
+    return out;
+  }
+
+  /* ---------- 后处理 ---------- */
+  /* 补洞：把被前景包住的背景小块补成前景（衣服里的小缺口、脖子与衣领之间）。
+     但**墙色的小块不能补**——镜腿与头发之间那一条被围住的墙面，补了就会变成
+     浮在底色上的灰色小碎片（太阳穴两侧那种「E 形」灰块就是这么来的）。
+     判据：洞内过半像素与局部背景色的距离明显 > 噪声，才认定是「人体内的洞」。 */
+  function fillHoles(a, w, h, d, B, T) {
+    var n = w * h, seen = new Uint8Array(n), q = new Int32Array(n), hd = 0, tl = 0, x, y, i;
+    function push(k) { if (a[k] < 128 && !seen[k]) { seen[k] = 1; q[tl++] = k; } }
+    for (x = 0; x < w; x++) { push(x); push((h - 1) * w + x); }
+    for (y = 0; y < h; y++) { push(y * w); push(y * w + w - 1); }
+    while (hd < tl) {
+      i = q[hd++]; x = i % w; y = (i / w) | 0;
+      if (x > 0) push(i - 1); if (x < w - 1) push(i + 1);
+      if (y > 0) push(i - w); if (y < h - 1) push(i + w);
+    }
+    var out = new Uint8Array(a);
+    if (!d || !B || T == null) {
+      for (i = 0; i < n; i++) if (a[i] < 128 && !seen[i]) out[i] = 255;
+      return out;
+    }
+    var gate = T * T * 3 * 3.2;
+    var vis = new Uint8Array(n);
+    for (i = 0; i < n; i++) {
+      if (a[i] >= 128 || seen[i] || vis[i]) continue;
+      /* 收集这一个洞 */
+      var hq = [i]; vis[i] = 1; var hk = 0, tot = 0, off = 0;
+      while (hk < hq.length) {
+        var k = hq[hk++]; tot++;
+        var jj = k * 4, oo = k * 3;
+        var dr = d[jj] - B[oo], dg = d[jj + 1] - B[oo + 1], db = d[jj + 2] - B[oo + 2];
+        if (dr * dr + dg * dg + db * db > gate) off++;
+        var kx = k % w, ky = (k / w) | 0;
+        if (kx > 0) { var m1 = k - 1; if (a[m1] < 128 && !seen[m1] && !vis[m1]) { vis[m1] = 1; hq.push(m1); } }
+        if (kx < w - 1) { var m2 = k + 1; if (a[m2] < 128 && !seen[m2] && !vis[m2]) { vis[m2] = 1; hq.push(m2); } }
+        if (ky > 0) { var m3 = k - w; if (a[m3] < 128 && !seen[m3] && !vis[m3]) { vis[m3] = 1; hq.push(m3); } }
+        if (ky < h - 1) { var m4 = k + w; if (a[m4] < 128 && !seen[m4] && !vis[m4]) { vis[m4] = 1; hq.push(m4); } }
+      }
+      if (off * 2 <= tot) continue;   /* 过半是墙色 → 是残留的墙面，保持透明 */
+      for (hk = 0; hk < hq.length; hk++) out[hq[hk]] = 255;
+    }
+    return out;
+  }
+
+  function keepMainFG(a, w, h) {
+    var n = w * h, seen = new Uint8Array(n), q = new Int32Array(n), keep = new Uint8Array(n), i;
+    var lim = Math.max(24, Math.round(n * 0.0003)), seeds = [];
+    function walk(start, vis, mark) {
+      var hd = 0, tl = 0; vis[start] = 1; q[tl++] = start; if (mark) mark[start] = 1;
+      while (hd < tl) {
+        var k = q[hd++], x = k % w, y = (k / w) | 0;
+        function push(m) { if (a[m] >= 128 && !vis[m]) { vis[m] = 1; if (mark) mark[m] = 1; q[tl++] = m; } }
+        if (x > 0) push(k - 1); if (x < w - 1) push(k + 1);
+        if (y > 0) push(k - w); if (y < h - 1) push(k + w);
+      }
+      return tl;
+    }
+    for (i = 0; i < n; i++) if (a[i] >= 128 && !seen[i]) { if (walk(i, seen, null) >= lim) seeds.push(i); }
+    var vis2 = new Uint8Array(n);
+    for (var s = 0; s < seeds.length; s++) walk(seeds[s], vis2, keep);
+    var out = new Uint8Array(a);
+    for (i = 0; i < n; i++) if (a[i] >= 128 && !keep[i]) out[i] = 0;
+    return out;
+  }
+
+  function killSpecks(a, w, h) {
+    var out = new Uint8Array(a), y, x, i, dy, dx, cnt;
+    for (y = 2; y < h - 2; y++) for (x = 2; x < w - 2; x++) {
+      i = y * w + x; if (a[i] < 128) continue;
+      cnt = 0;
+      for (dy = -2; dy <= 2; dy++) for (dx = -2; dx <= 2; dx++) if (a[(y + dy) * w + x + dx] >= 128) cnt++;
+      if (cnt <= 4) out[i] = 0;
+    }
+    return out;
+  }
+
+  function repairGaps(a, d, w, h, B, T, face) {
+    if (!face) return a;
+    var out = new Uint8Array(a), lim2 = T * T * 3 * 1.6;
+    var y0 = Math.min(h - 1, Math.max(0, Math.round(face.y + face.h * 0.86))), y, x;
+    for (y = y0; y < h; y++) {
+      var row = y * w, first = -1, last = -1;
+      for (x = 0; x < w; x++) if (a[row + x] >= 128) { if (first < 0) first = x; last = x; }
+      if (first < 0 || last - first < 6) continue;
+      var span = last - first; x = first;
+      while (x <= last) {
+        if (a[row + x] >= 128) { x++; continue; }
+        var e = x; while (e <= last && a[row + e] < 128) e++;
+        var gw = e - x;
+        if (gw > 2 && gw <= span * 0.5) {
+          var mx = (x + e) >> 1, i = row + mx, j = i * 4, o = i * 3;
+          var dr = d[j] - B[o], dg = d[j + 1] - B[o + 1], db = d[j + 2] - B[o + 2];
+          if (dr * dr + dg * dg + db * db > lim2) for (var k = x; k < e; k++) out[row + k] = 255;
+        }
+        x = e;
+      }
+    }
+    return out;
+  }
+
+  /* 墙面残留清理：颜色像墙 + 结构上是「细条」才吃掉。
+     「细条」= 沿某个方向左右（或上下）两侧都能在很短的步长内碰到背景。
+     这样墙上的偏色横带会被清掉，而浅色外套的轮廓边（一侧永远是身体）不会。 */
+  function trimWallLike(a, d, w, h, B, T) {
+    var n = w * h, i, j, o, x, y;
+    var inFG = new Uint8Array(n), inBG = new Uint8Array(n);
+    for (i = 0; i < n; i++) { inFG[i] = a[i] >= 128 ? 1 : 0; inBG[i] = inFG[i] ? 0 : 1; }
+    var dtIn = chamfer(inBG, w, h);
+    var lim = Math.max(3, Math.round(Math.min(w, h) * 0.016));
+    var colLim2 = T * T * 3 * 1.15;
+    var out = new Uint8Array(a);
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+      i = y * w + x;
+      if (a[i] < 128) continue;
+      if (dtIn[i] > lim) continue;
+      j = i * 4; o = i * 3;
+      var dr = d[j] - B[o], dg = d[j + 1] - B[o + 1], db = d[j + 2] - B[o + 2];
+      var d2 = dr * dr + dg * dg + db * db;
+      /* 结构判据：横或纵两侧都在 lim 步内碰到背景 → 细条 */
+      var k, L = 0, R = 0, U = 0, D = 0;
+      for (k = 1; k <= lim; k++) { if (x - k < 0 || a[i - k] < 128) { L = k; break; } }
+      for (k = 1; k <= lim; k++) { if (x + k >= w || a[i + k] < 128) { R = k; break; } }
+      for (k = 1; k <= lim; k++) { if (y - k < 0 || a[i - k * w] < 128) { U = k; break; } }
+      for (k = 1; k <= lim; k++) { if (y + k >= h || a[i + k * w] < 128) { D = k; break; } }
+      var thinH = L && R && L + R <= lim, thinV = U && D && U + D <= lim;
+      if (!thinH && !thinV) continue;
+      if (d2 <= colLim2) { out[i] = 0; continue; }
+      /* 更细的条（两侧夹得更紧）允许更大的色差：墙上的阴影线常常比墙暗 40~70，
+         而贴在轮廓上的头发是「一侧永远没有背景」，不会满足上面的结构判据 */
+      if (d2 <= colLim2 * 8 && lum(d[j], d[j + 1], d[j + 2]) > lum(B[o], B[o + 1], B[o + 2]) - 92) { out[i] = 0; }
+    }
+    return out;
+  }
+
+  /* 3×3 众数滤波：邻域里 5 票以上是前景就当前景，否则背景。
+     等价于中值滤波，但更快；用于抹掉轮廓上的 1~2px 横齿/针孔。 */
+  function majority(a, w, h) {
+    var out = new Uint8Array(a), x, y, i, dx, dy, c;
+    for (y = 1; y < h - 1; y++) for (x = 1; x < w - 1; x++) {
+      i = y * w + x; c = a[i] >= 128 ? 1 : 0;
+      if (a[i - 1] >= 128) c++;
+      if (a[i + 1] >= 128) c++;
+      if (a[i - w] >= 128) c++;
+      if (a[i + w] >= 128) c++;
+      if (a[i - w - 1] >= 128) c++;
+      if (a[i - w + 1] >= 128) c++;
+      if (a[i + w - 1] >= 128) c++;
+      if (a[i + w + 1] >= 128) c++;
+      out[i] = c >= 5 ? 255 : 0;
+    }
+    return out;
+  }
+
+  function stripThin(a, d, w, h, T) {
+    var out = new Uint8Array(a), y, x, i, dy, dx, cnt, sr, sg, sb, k, j, dr, dg, db, lim2 = T * T * 4;
+    for (y = 1; y < h - 1; y++) for (x = 1; x < w - 1; x++) {
+      i = y * w + x; if (a[i] < 128) continue;
+      cnt = 0; sr = 0; sg = 0; sb = 0;
+      for (dy = -1; dy <= 1; dy++) for (dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        k = i + dy * w + dx;
+        if (a[k] < 80) { cnt++; j = k * 4; sr += d[j]; sg += d[j + 1]; sb += d[j + 2]; }
+      }
+      if (cnt < 5) continue;
+      j = i * 4; dr = d[j] - sr / cnt; dg = d[j + 1] - sg / cnt; db = d[j + 2] - sb / cnt;
+      if (dr * dr + dg * dg + db * db < lim2) out[i] = 0;
+    }
+    return out;
+  }
+
+  function chamfer(init, w, h) {
+    var n = w * h, dt = new Float32Array(n), i, x, y, v, d1 = 1, d2 = 1.4142, k;
+    for (i = 0; i < n; i++) dt[i] = init[i] ? 0 : 1e6;
+    for (y = 1; y < h; y++) {
+      for (x = 0; x < w; x++) {
+        i = y * w + x; v = dt[i];
+        if (x > 0) { k = dt[i - 1] + d1; if (k < v) v = k; }
+        if (x < w - 1) { k = dt[i - w + 1] + d2; if (k < v) v = k; }
+        k = dt[i - w] + d1; if (k < v) v = k;
+        if (x > 0) { k = dt[i - w - 1] + d2; if (k < v) v = k; }
+        dt[i] = v;
+      }
+    }
+    for (y = h - 2; y >= 0; y--) {
+      for (x = w - 1; x >= 0; x--) {
+        i = y * w + x; v = dt[i];
+        if (x < w - 1) { k = dt[i + 1] + d1; if (k < v) v = k; }
+        if (x > 0) { k = dt[i + w - 1] + d2; if (k < v) v = k; }
+        k = dt[i + w] + d1; if (k < v) v = k;
+        if (x < w - 1) { k = dt[i + w + 1] + d2; if (k < v) v = k; }
+        dt[i] = v;
+      }
+    }
+    return dt;
+  }
+
+  /* ---------- α 抠像：边界带内解 α 并反解 F，去掉墙面污染 ---------- */
+  /* 孤岛清理：证件照里的人只有一个主体（必然触底）。凡是「既不与主体相连、
+     又不贴着主体」的前景块，都是墙面残留 —— 偏色横带、截图白边都属此类。
+     贴边 1px 内保留，避免把分离的碎发、耳朵附近的发丝误删 */
+  function dropIslands(a, d, w, h, B, T) {
+    var n = w * h, i, x, y;
+    var comp = new Int32Array(n).fill(-1), sizes = [], q = new Int32Array(n);
+    var cid = 0;
+    for (i = 0; i < n; i++) {
+      if (a[i] < 128 || comp[i] >= 0) continue;
+      var hd = 0, tl = 0; comp[i] = cid; q[tl++] = i;
+      while (hd < tl) {
+        var k = q[hd++], kx = k % w, ky = (k / w) | 0;
+        if (kx > 0 && a[k - 1] >= 128 && comp[k - 1] < 0) { comp[k - 1] = cid; q[tl++] = k - 1; }
+        if (kx < w - 1 && a[k + 1] >= 128 && comp[k + 1] < 0) { comp[k + 1] = cid; q[tl++] = k + 1; }
+        if (ky > 0 && a[k - w] >= 128 && comp[k - w] < 0) { comp[k - w] = cid; q[tl++] = k - w; }
+        if (ky < h - 1 && a[k + w] >= 128 && comp[k + w] < 0) { comp[k + w] = cid; q[tl++] = k + w; }
+      }
+      sizes.push(tl); cid++;
+    }
+    if (cid <= 1) return a;
+    var main = 0;
+    for (i = 1; i < cid; i++) if (sizes[i] > sizes[main]) main = i;
+    /* 与主体相邻（含 1px 膨胀）的块保留 */
+    var near = new Uint8Array(cid);
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+      i = y * w + x; if (comp[i] !== main) continue;
+      var xa = x > 0 ? x - 1 : 0, xb = x < w - 1 ? x + 1 : w - 1;
+      var ya = y > 0 ? y - 1 : 0, yb = y < h - 1 ? y + 1 : h - 1, yy, xx;
+      for (yy = ya; yy <= yb; yy++) for (xx = xa; xx <= xb; xx++) {
+        var c = comp[yy * w + xx];
+        if (c >= 0 && c !== main) near[c] = 1;
+      }
+    }
+    near[main] = 1;
+    /* 安全阀：又大又明显不是墙色的孤立块（袖子、垂下的手、脱框的肩膀）
+       不能当残留删掉，只删「小」或「颜色像墙」的孤立块 */
+    var sum = new Float64Array(cid), cnt = new Int32Array(cid);
+    for (i = 0; i < n; i++) {
+      var ci = comp[i]; if (ci < 0) continue;
+      var jj = i * 4, oo = i * 3;
+      var a0 = d[jj] - B[oo], b0 = d[jj + 1] - B[oo + 1], c0 = d[jj + 2] - B[oo + 2];
+      sum[ci] += Math.sqrt(a0 * a0 + b0 * b0 + c0 * c0); cnt[ci]++;
+    }
+    var bigLim = Math.max(400, Math.round(n * 0.012));
+    var out = new Uint8Array(a);
+    for (i = 0; i < n; i++) {
+      var c2 = comp[i];
+      if (c2 < 0 || near[c2]) continue;
+      var mean = sum[c2] / Math.max(1, cnt[c2]);
+      var isBig = sizes[c2] >= bigLim && mean > T * 2.6;
+      if (!isBig) out[i] = 0;
+    }
+    return out;
+  }
+
+  /* 墙面残留块判定（结构 + 颜色）：
+     把「颜色像墙」的前景像素连成块，看这块的边界有多少比例是贴着背景的。
+     · 墙上的偏色横带/亮带：上下两条长边全贴背景 → 比例≈1 → 判为墙，整块去掉
+     · 外套上的浅色迷彩块：只有靠近轮廓的一小段贴背景 → 比例低 → 保留
+     这比「薄不薄」可靠得多：轮廓上 1px 的浅色边只露出一半，不会被误删 */
+  function killWallBands(a, d, w, h, B, T) {
+    var n = w * h, i;
+    var cand = new Uint8Array(n);
+    var gate = T * T * 3 * 22;
+    for (i = 0; i < n; i++) {
+      if (a[i] < 128) continue;
+      var j = i * 4, o = i * 3;
+      var dr = d[j] - B[o], dg = d[j + 1] - B[o + 1], db = d[j + 2] - B[o + 2];
+      if (dr * dr + dg * dg + db * db > gate) continue;
+      if (lum(d[j], d[j + 1], d[j + 2]) < lum(B[o], B[o + 1], B[o + 2]) - 70) continue;
+      cand[i] = 1;
+    }
+    var seen = new Uint8Array(n), q = new Int32Array(n), out = new Uint8Array(a);
+    for (i = 0; i < n; i++) {
+      if (!cand[i] || seen[i]) continue;
+      var hd = 0, tl = 0, per = 0, bgEdge = 0, size = 0;
+      seen[i] = 1; q[tl++] = i;
+      while (hd < tl) {
+        var k = q[hd++], x = k % w, y = (k / w) | 0; size++;
+        for (var t = 0; t < 4; t++) {
+          var m;
+          if (t === 0) { if (x === 0) { per++; bgEdge++; continue; } m = k - 1; }
+          else if (t === 1) { if (x === w - 1) { per++; bgEdge++; continue; } m = k + 1; }
+          else if (t === 2) { if (y === 0) { per++; bgEdge++; continue; } m = k - w; }
+          else { if (y === h - 1) { per++; bgEdge++; continue; } m = k + w; }
+          if (a[m] < 128) { per++; bgEdge++; }
+          else if (cand[m]) { if (!seen[m]) { seen[m] = 1; q[tl++] = m; } }
+          else { per++; }
+        }
+      }
+      if (SegCore._watch && seen[SegCore._watch.i]) { SegCore._watchOut = { size: size, per: per, bgEdge: bgEdge, ratio: bgEdge / per }; }
+      if (size >= 12 && per > 0 && bgEdge > per * 0.78) {
+        for (var t2 = 0; t2 < tl; t2++) out[q[t2]] = 0;
+      }
+    }
+    return out;
+  }
+
+  /* 横贯画面的墙面亮/暗带会横向截断扩散，让下方整片墙留在「前景」里。
+     判据：一个像素所在的前景连通行程，若「一个方向很薄、另一个方向很长」，
+     就是带子而不是人（人的任何一个部位两个方向都厚）。
+     再加颜色/亮度闸门，深色头发与深色衣物不会被误判。 */
+  function killBands(a, d, w, h, B, T) {
+    var n = w * h, i, x, y;
+    var vRun = new Int32Array(n), hRun = new Int32Array(n);
+    for (x = 0; x < w; x++) {
+      y = 0;
+      while (y < h) {
+        if (a[y * w + x] < 128) { y++; continue; }
+        var y0 = y; while (y < h && a[y * w + x] >= 128) y++;
+        var len = y - y0;
+        for (var k = y0; k < y; k++) vRun[k * w + x] = len;
+      }
+    }
+    for (y = 0; y < h; y++) {
+      x = 0;
+      while (x < w) {
+        if (a[y * w + x] < 128) { x++; continue; }
+        var x0 = x; while (x < w && a[y * w + x] >= 128) x++;
+        var len2 = x - x0;
+        for (var k2 = x0; k2 < x; k2++) hRun[y * w + k2] = len2;
+      }
+    }
+    var mn = Math.min(w, h);
+    var thinY = Math.max(4, Math.round(mn * 0.03)), longX = Math.max(48, Math.round(w * 0.14));
+    var thinX = Math.max(4, Math.round(mn * 0.03)), longY = Math.max(48, Math.round(h * 0.14));
+    var gate = T * T * 3 * 22;
+    var out = new Uint8Array(a);
+    for (i = 0; i < n; i++) {
+      if (a[i] < 128) continue;
+      var band = (vRun[i] <= thinY && hRun[i] >= longX) || (hRun[i] <= thinX && vRun[i] >= longY);
+      if (!band) continue;
+      var j = i * 4, o = i * 3;
+      if (j < 0) continue;
+      var dr = d[j] - B[o], dg = d[j + 1] - B[o + 1], db = d[j + 2] - B[o + 2];
+      if (dr * dr + dg * dg + db * db > gate) continue;
+      if (lum(d[j], d[j + 1], d[j + 2]) < lum(B[o], B[o + 1], B[o + 2]) - 62) continue;
+      out[i] = 0;
+    }
+    return out;
+  }
+
+  /* ---------- 补耳廓/脖子这类「肤色亮边被当成墙」的缺口 ----------
+     耳朵外缘、脖子的高光会接近墙面亮色，被结构性清理剪掉，留下锯齿状缺口。
+     判据：肤色 + 8 邻域里 ≥5 个是实心前景（说明它在人物轮廓内侧，而不是外侧的墙） */
+  function healSkinBites(a, skin, w, h) {
+    var n = w * h, out = new Uint8Array(a), x, y, i, cnt, pass;
+    for (pass = 0; pass < 2; pass++) {
+      var src = out, chg = 0;
+      var res = new Uint8Array(src);
+      for (y = 1; y < h - 1; y++) for (x = 1; x < w - 1; x++) {
+        i = y * w + x;
+        if (src[i] >= 128 || !skin[i]) continue;
+        cnt = 0;
+        if (src[i - 1] >= 128) cnt++;
+        if (src[i + 1] >= 128) cnt++;
+        if (src[i - w] >= 128) cnt++;
+        if (src[i + w] >= 128) cnt++;
+        if (src[i - w - 1] >= 128) cnt++;
+        if (src[i - w + 1] >= 128) cnt++;
+        if (src[i + w - 1] >= 128) cnt++;
+        if (src[i + w + 1] >= 128) cnt++;
+        if (cnt >= 5) { res[i] = 255; chg++; }
+      }
+      out = res;
+      if (!chg) break;
+    }
+    return out;
+  }
+
+  /* 剥掉贴在轮廓上的「墙色高光薄片」。
+     场景：墙面上一块亮反光（或白纸/窗台）恰好贴着人的头发/镜腿，grow 阶段
+     因为「比局部背景场亮」把它当成前景留了下来，换底色后就是一条浅灰白横带。
+     之前所有清理都用 B 场作参考，但 B 场是整片墙的均值，比这块高光暗 30+，
+     于是判不出「它就是墙」。这里改用它**紧邻的真实背景像素**的颜色作参考：
+        · 只在轮廓最外一圈（四邻域有背景）动手，最多剥 2 层，轮廓不会内缩；
+        · 必须非肤色、低饱和、与紧邻背景几乎同色（±16/通道）；
+        · 白衬衫/额头高光/眼镜反光与邻域墙色差都很大，不会误伤。 */
+  function peelWallGlare(a, d, w, h, skin) {
+    var n = w * h, out = a, pass, x, y, i, j, k, changed;
+    var kill = new Uint8Array(n);
+    for (pass = 0; pass < 2; pass++) {
+      kill.fill(0); changed = 0;
+      for (y = 2; y < h - 2; y++) for (x = 2; x < w - 2; x++) {
+        i = y * w + x;
+        if (out[i] < 128 || skin[i]) continue;
+        /* 必须是轮廓最外沿：四邻域至少一个背景 */
+        if (out[i - 1] >= 128 && out[i + 1] >= 128 && out[i - w] >= 128 && out[i + w] >= 128) continue;
+        j = i * 4;
+        var Pr = d[j], Pg = d[j + 1], Pb = d[j + 2];
+        var mx = Pr > Pg ? (Pr > Pb ? Pr : Pb) : (Pg > Pb ? Pg : Pb);
+        var mn = Pr < Pg ? (Pr < Pb ? Pr : Pb) : (Pg < Pb ? Pg : Pb);
+        if (mx - mn > 26) continue;                       /* 低饱和：排除暖肤色/彩衣 */
+        /* 邻域真实背景的均值（半径 3） */
+        var sr = 0, sg = 0, sb = 0, c = 0;
+        for (var dy = -3; dy <= 3; dy++) for (var dx = -3; dx <= 3; dx++) {
+          k = (y + dy) * w + x + dx;
+          if (out[k] >= 128) continue;
+          sr += d[k * 4]; sg += d[k * 4 + 1]; sb += d[k * 4 + 2]; c++;
+        }
+        if (c < 5) continue;                               /* 背景样本太少，不敢判 */
+        var br = sr / c, bg = sg / c, bb = sb / c;
+        if (Math.abs(Pr - br) > 16 || Math.abs(Pg - bg) > 16 || Math.abs(Pb - bb) > 16) continue;
+        kill[i] = 1; changed++;
+      }
+      if (!changed) break;
+      var res = new Uint8Array(out);
+      for (i = 0; i < n; i++) if (kill[i]) res[i] = 0;
+      out = res;
+    }
+    return out;
+  }
+
+  /* ---------- α 抠像 ----------
+     边界带内解 P = αF + (1-α)B 得到 α；再把边缘像素的 RGB 换成「纯前景色」，
+     彻底去掉墙面色渗进发丝形成的白边/光晕。 */
+  function matte(out, a, d, w, h, B, T, fine) {
+    var n = w * h, i, j, o;
+    var BAND = Math.max(3, Math.round(Math.min(w, h) * (fine ? 0.012 : 0.0085)));
+
+    var inFG = new Uint8Array(n), inBG = new Uint8Array(n);
+    for (i = 0; i < n; i++) { var f = a[i] >= 128 ? 1 : 0; inFG[i] = f; inBG[i] = f ? 0 : 1; }
+    /* chamfer(x)=到最近 x!=0 像素的距离：chamfer(inBG) 给前景的内距离，
+       chamfer(inFG) 给背景的外距离 */
+    var dtIn = chamfer(inBG, w, h);
+    var dtOut = chamfer(inFG, w, h);
+
+    /* 最近「实心前景」颜色：边缘像素的前景色参考 */
+    var solidLim = BAND * 2.5;
+    var fc = new Float32Array(n * 3), fv = new Uint8Array(n);
+    var qq = new Int32Array(n), hd = 0, tl = 0;
+    for (i = 0; i < n; i++) {
+      if (inFG[i] && dtIn[i] >= solidLim) {
+        fv[i] = 1; j = i * 4; var c0 = i * 3;
+        fc[c0] = d[j]; fc[c0 + 1] = d[j + 1]; fc[c0 + 2] = d[j + 2]; qq[tl++] = i;
+      }
+    }
+    if (!tl) {
+      for (i = 0; i < n; i++) if (inFG[i]) {
+        fv[i] = 1; j = i * 4; var c1 = i * 3;
+        fc[c1] = d[j]; fc[c1 + 1] = d[j + 1]; fc[c1 + 2] = d[j + 2]; qq[tl++] = i;
+      }
+    }
+    while (hd < tl) {
+      var k = qq[hd++], kx = k % w, ky = (k / w) | 0, c2 = k * 3;
+      for (var t2 = 0; t2 < 4; t2++) {
+        var m = t2 === 0 ? (kx > 0 ? k - 1 : -1) : t2 === 1 ? (kx < w - 1 ? k + 1 : -1)
+              : t2 === 2 ? (ky > 0 ? k - w : -1) : (ky < h - 1 ? k + w : -1);
+        if (m < 0 || fv[m]) continue;
+        if (inFG[m] ? dtIn[m] > solidLim + 1 : dtOut[m] > BAND * 3 + 4) continue;
+        fv[m] = 1; var cc = m * 3;
+        fc[cc] = fc[c2]; fc[cc + 1] = fc[c2 + 1]; fc[cc + 2] = fc[c2 + 2];
+        qq[tl++] = m;
+      }
+    }
+
+    var A = new Float32Array(n);
+    for (i = 0; i < n; i++) A[i] = inFG[i] ? 1 : 0;
+
+    var minLen2 = 625;
+    if (SegCore._dbgM) { SegCore._dbgM.fv = fv; SegCore._dbgM.fc = fc; SegCore._dbgM.dtIn = dtIn; SegCore._dbgM.dtOut = dtOut; }
+    for (i = 0; i < n; i++) {
+      var inner = inFG[i], band = inner ? dtIn[i] : dtOut[i];
+      var lp = 0, lb = 0;
+      if (!inner) {
+        /* 轮廓外侧：比背景明显更暗（发丝、深色衣边）就允许更宽的回收带。
+           抠像带够不到真实边缘时，硬切在带边界上就会留下台阶锯齿/缺口。 */
+        j = i * 4; o = i * 3;
+        lp = lum(d[j], d[j + 1], d[j + 2]); lb = lum(B[o], B[o + 1], B[o + 2]);
+        if (band > BAND * 3) continue;
+        if (band > BAND && !(lp < lb - 12)) continue;
+      } else if (band > BAND) continue;
+      if (!fv[i]) continue;
+      j = i * 4; o = i * 3;
+      var Br = B[o], Bg = B[o + 1], Bb = B[o + 2];
+      var Fr = fc[o], Fg = fc[o + 1], Fb = fc[o + 2];
+      /* 参考色可能「串层」：贴着皮肤的细发条没有足够宽的实心核，BFS 会把旁边
+         皮肤的颜色灌进来，于是发丝被当成「墙色差为负」→ α=0，出现红麻点。
+         参考色明显比像素本身亮，说明取错层了，改用像素自身颜色。 */
+      if (inner && lum(d[j], d[j + 1], d[j + 2]) < lum(Fr, Fg, Fb) - 25) {
+        Fr = d[j]; Fg = d[j + 1]; Fb = d[j + 2];
+      }
+      var dr = Fr - Br, dg = Fg - Bg, db = Fb - Bb;
+      var len2 = dr * dr + dg * dg + db * db;
+      var pr = d[j] - Br, pg = d[j + 1] - Bg, pb = d[j + 2] - Bb;
+      var al;
+      if (len2 < minLen2) {
+        /* 参考前景色与墙色太接近（浅肤色贴浅墙 / 白衣贴白墙），投影无解。
+           这时靠「比背景暗多少」判断：明显更暗就是发丝/深轮廓，否则算背景。
+           以前外侧一律给 0，太阳穴那几颗红点就是这么被挖出来的。 */
+        al = inner ? 1 : (lb - lp > Math.max(22, T * 1.1) ? 1 : 0);
+      } else {
+        al = (pr * dr + pg * dg + pb * db) / len2;
+        al = al < 0 ? 0 : al > 1 ? 1 : al;
+      }
+      if (!inner) {
+        var darkAmt = lb - lp;
+        var dist2 = pr * pr + pg * pg + pb * pb;
+        /* 离轮廓越远要求越严：贴着轮廓 1~BAND 内允许较暗的回采（补发梢），
+           再往外只认真实发丝。松紧不分会让墙面的偏色噪点糊成一条灰雾。 */
+        var need = band > BAND ? Math.max(24, T * 1.15) : Math.max(9, T * 0.5);
+        if (darkAmt < need || dist2 < T * T * 0.55) al = 0;
+        else {
+          /* 投影值失效（参考色取到了隔着头发的皮肤等）时，退化成「按暗度给 α」，
+             保证发梢不会整条被切断成硬边 */
+          if (al < 0.16) al = Math.min(1, darkAmt / 62);
+          al = Math.min(al, darkAmt / Math.max(14, lb - lum(Fr, Fg, Fb)));
+          if (al < 0.12) al = 0;
+        }
+      }
+      A[i] = al;
+    }
+
+    /* 轮廓抖动平滑：3×3 低通两轮，抹平 50% 等值线的小波浪（台阶/缺口）。
+       过渡带保留 2~3px —— 头发这种软边才不会变成「剪贴画」的刀切边。 */
+    featherF(A, w, h, 2);
+    /* 只压噪声底：0.06 以下归零、0.94 以上做实，中间渐变完整保留。
+       旧版用 (a-0.34)/0.22 的陡 S 曲线把 0.55 以上整段压成 1，正是边缘生硬的原因。 */
+    for (i = 0; i < n; i++) {
+      var t = (A[i] - 0.06) / 0.88;
+      A[i] = t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+    }
+
+    /* 写回：α 决定覆盖率；半透明像素的 RGB 反解成「纯前景色」，否则合成到新底色上
+       会把原墙色一起带出来（灰边/光晕）。
+       反解只用亮度做标量，色度沿用参考色：逐通道相除时，暖色墙（R>G>B）被除以
+       偏小的 α 后会各自过冲，边缘就浮出一圈墨绿——这一步就是那个绿边的根源。 */
+    var CLAMP = 42;
+    for (i = 0; i < n; i++) {
+      var al2 = A[i]; j = i * 4; o = i * 3;
+      if (al2 <= 0.02) { out[j + 3] = 0; continue; }
+      if (al2 >= 0.985) { out[j + 3] = 255; continue; }
+      out[j + 3] = Math.round(al2 * 255);
+      if (!fv[i]) { out[j + 3] = al2 > 0.5 ? 255 : 0; continue; }
+      var Br2 = B[o], Bg2 = B[o + 1], Bb2 = B[o + 2];
+      var Fr2 = fc[o], Fg2 = fc[o + 1], Fb2 = fc[o + 2];
+      var Pl2 = lum(d[j], d[j + 1], d[j + 2]);
+      var Bl2 = lum(Br2, Bg2, Bb2);
+      var Rl2 = lum(Fr2, Fg2, Fb2);
+      var Fl = Bl2 + (Pl2 - Bl2) / al2;             /* 前景亮度反解 */
+      if (Pl2 < Bl2) {
+        /* 比背景暗的边（发丝、深色衣边）：只许往更暗走。
+           更要紧的是把反解值钉回参考色附近——低分辨率下混合带只有 1~2px，
+           直接反解会把误差放大成「灰」，红底上一看就是一圈灰边。
+           钉在参考色上，合成结果就是干净的「红→发色」渐变。 */
+        var kd = Fl / (Rl2 > 8 ? Rl2 : 1);
+        if (kd > 1.15) kd = 1.15; if (kd < 0.82) kd = 0.82;
+        Fl = (Rl2 > 8 ? Rl2 : Fl) * kd;
+        if (Fl > Pl2) Fl = Pl2;
+        if (Fl < 0) Fl = 0;
+      } else {
+        /* 比背景亮的边（白衣/浅肤贴墙）：不许超过参考色太多，避免炸白点 */
+        var hi = Rl2 + CLAMP; if (!inFG[i] && hi > Pl2) hi = Pl2;
+        if (Fl > hi) Fl = hi;
+        if (Fl < Rl2 - CLAMP) Fl = Rl2 - CLAMP;
+      }
+      var kk = Rl2 > 8 ? Fl / Rl2 : 1;
+      if (kk < 0) kk = 0; else if (kk > 2.4) kk = 2.4;
+      out[j] = clamp255(Fr2 * kk);
+      out[j + 1] = clamp255(Fg2 * kk);
+      out[j + 2] = clamp255(Fb2 * kk);
+    }
+
+    /* 轮廓内侧 1~2px 的「墙色混入」：源图里这一圈是发丝/皮肤与墙的半混合，
+       被判成实心后颜色仍偏灰，合成到任何底色上都是一圈灰边（不是 α 的问题）。
+       从内向外做两轮颜色传播，把边环刷成纯前景色。 */
+    rimClean(out, inFG, dtIn, w, h, 2);
+  }
+
+  function rimClean(out, inFG, dt, w, h, radius) {
+    var n = w * h, pass, x, y, i, k, c, sr, sg, sb, yy, xx;
+    for (pass = radius; pass >= 1; pass--) {
+      var ti = [], tr = [], tg = [], tb = [];
+      for (y = 1; y < h - 1; y++) for (x = 1; x < w - 1; x++) {
+        i = y * w + x;
+        if (!inFG[i] || dt[i] !== pass) continue;
+        if (out[i * 4 + 3] < 250) continue;
+        sr = 0; sg = 0; sb = 0; c = 0;
+        for (yy = y - 1; yy <= y + 1; yy++) for (xx = x - 1; xx <= x + 1; xx++) {
+          if (yy === y && xx === x) continue;
+          k = yy * w + xx;
+          if (!inFG[k] || dt[k] < pass + 1) continue;     /* 只取更深层的前景 */
+          if (out[k * 4 + 3] < 250) continue;
+          sr += out[k * 4]; sg += out[k * 4 + 1]; sb += out[k * 4 + 2]; c++;
+        }
+        if (c < 2) continue;                              /* 细发丝两侧都是边，跳过 */
+        ti.push(i * 4); tr.push(sr / c); tg.push(sg / c); tb.push(sb / c);
+      }
+      for (k = 0; k < ti.length; k++) {
+        out[ti[k]] = tr[k]; out[ti[k] + 1] = tg[k]; out[ti[k] + 2] = tb[k];
+      }
+    }
+  }
+
+
+  /* 针孔修补：轮廓内部 1~2px 的透明小孔（发光点、压缩噪声被判成背景）会在
+     底色上变成一颗颗彩色沙子。8 邻域里 6 个以上是实心就补上，颜色取邻域均值。 */
+  function despeckleAlpha(out, w, h, d, B, T) {
+    var n = w * h, x, y, i, pass;
+    var gate = T * T * 3 * 5;
+    for (pass = 0; pass < 3; pass++) {
+      var chg = 0, fill = [];
+      for (y = 1; y < h - 1; y++) for (x = 1; x < w - 1; x++) {
+        i = y * w + x;
+        if (out[i * 4 + 3] >= 128) continue;
+        var c = 0, r = 0, g = 0, b = 0, k, xx, yy;
+        for (yy = y - 1; yy <= y + 1; yy++) for (xx = x - 1; xx <= x + 1; xx++) {
+          if (yy === y && xx === x) continue;
+          k = (yy * w + xx) * 4;
+          if (out[k + 3] >= 200) { c++; r += out[k]; g += out[k + 1]; b += out[k + 2]; }
+        }
+        if (c >= 6) { fill.push(i, r / c, g / c, b / c); chg++; }
+      }
+      for (var q = 0; q < fill.length; q += 4) {
+        var ii = fill[q] * 4;
+        out[ii] = fill[q + 1]; out[ii + 1] = fill[q + 2]; out[ii + 2] = fill[q + 3]; out[ii + 3] = 255;
+      }
+      /* 2×2 的小孔：单个像素不满足 6/8，但整块被实心包围 → 一起补 */
+      for (y = 1; y < h - 2; y++) for (x = 1; x < w - 2; x++) {
+        i = y * w + x;
+        if (out[i * 4 + 3] >= 128) continue;
+        if (out[(i + 1) * 4 + 3] >= 128) continue;
+        if (out[(i + w) * 4 + 3] >= 128) continue;
+        if (out[(i + w + 1) * 4 + 3] >= 128) continue;
+        var sc = 0, sr = 0, sg = 0, sb = 0;
+        for (yy = y - 1; yy <= y + 2; yy++) for (xx = x - 1; xx <= x + 2; xx++) {
+          if (yy >= y && yy <= y + 1 && xx >= x && xx <= x + 1) continue;
+          k = (yy * w + xx) * 4;
+          if (out[k + 3] >= 200) { sc++; sr += out[k]; sg += out[k + 1]; sb += out[k + 2]; }
+        }
+        if (sc < 8) continue;
+        var mr = sr / sc, mg = sg / sc, mb = sb / sc;
+        for (var t3 = 0; t3 < 4; t3++) {
+          var pp = (t3 === 0 ? i : t3 === 1 ? i + 1 : t3 === 2 ? i + w : i + w + 1) * 4;
+          out[pp] = mr; out[pp + 1] = mg; out[pp + 2] = mb; out[pp + 3] = 255;
+        }
+        chg++;
+      }
+      if (!chg) break;
+    }
+  }
+
+  /* 淡影清理：背景里孤立的半透明墙色残留（残带、去不干净的接缝）
+     周围 2px 内没有实心人像 → 直接清零。头发边缘一定挨着实心发丝，不会误删 */
+  function dropFaint(out, d, w, h, B, T) {
+    var n = w * h, i, x, y;
+    var gate = T * T * 3 * 20;
+    var kill = [];
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+      i = y * w + x;
+      var av = out[i * 4 + 3];
+      if (av === 0 || av >= 160) continue;
+      var j = i * 4, o = i * 3;
+      var dr = d[j] - B[o], dg = d[j + 1] - B[o + 1], db = d[j + 2] - B[o + 2];
+      if (dr * dr + dg * dg + db * db > gate) continue;
+      /* 邻域里有没有明显更「实」的人像像素：有就说明这是头发/轮廓的软边，
+         必须保留；没有才说明是浮在背景里的墙色淡影 */
+      var mx = 0;
+      var ya = y > 2 ? y - 2 : 0, yb = y < h - 3 ? y + 2 : h - 1;
+      var xa = x > 2 ? x - 2 : 0, xb = x < w - 3 ? x + 2 : w - 1, yy, xx;
+      for (yy = ya; yy <= yb && mx < 175; yy++) for (xx = xa; xx <= xb; xx++) {
+        if (yy === y && xx === x) continue;
+        var v = out[(yy * w + xx) * 4 + 3];
+        if (v > mx) mx = v;
+      }
+      if (mx >= 175) continue;
+      kill.push(i);
+    }
+    for (var k = 0; k < kill.length; k++) out[kill[k] * 4 + 3] = 0;
+  }
+
+  function featherF(A, w, h, passes) {
+    var n = w * h, p, x, y, i;
+    var cur = A.slice();
+    for (p = 0; p < passes; p++) {
+      var nxt = new Float32Array(n);
+      for (y = 0; y < h; y++) {
+        var y0 = y > 0 ? y - 1 : 0, y1 = y < h - 1 ? y + 1 : h - 1;
+        for (x = 0; x < w; x++) {
+          var x0 = x > 0 ? x - 1 : 0, x1 = x < w - 1 ? x + 1 : w - 1, s = 0, cnt = 0, yy, xx;
+          for (yy = y0; yy <= y1; yy++) for (xx = x0; xx <= x1; xx++) { s += cur[yy * w + xx]; cnt++; }
+          nxt[y * w + x] = s / cnt;
+        }
+      }
+      cur = nxt;
+    }
+    for (i = 0; i < n; i++) A[i] = cur[i];
+  }
+
+  return { killBands: killBands, killWallBands: killWallBands, segment: segment, skinMask: skinMask, baseModel: baseModel, localField: localField, grow: grow };
+})();
+
+/* ---------- 抠图适配层：把内核接到界面 ---------- */
+function buildPerson(mode){
+ const s=S.srcCanvas,w=s.width,h=s.height;
+ const out=document.createElement('canvas');out.width=w;out.height=h;
+ const octx=out.getContext('2d',{willReadFrequently:true});
+ octx.drawImage(s,0,0);
+ if(mode==='none')return out;
+ ensureSegFace();
+ const img=s.getContext('2d',{willReadFrequently:true}).getImageData(0,0,w,h);
+ const res=SegCore.segment(img.data,w,h,{
+   power:+$('#cutPower').value/100,
+   fine:mode==='fine',
+   iters:mode==='simple'?1:3,
+   protectBody:$('#protectBody').checked,
+   face:S.segFace
+ });
+ octx.putImageData(new ImageData(res,w,h),0,0);
+ return out;
+}
+
+/* ---------- 肤色连通域自动定位人脸（替代按比例瞎猜） ---------- */
+function skinFace(){
+ const s=S.srcCanvas;if(!s)return null;
+ const w=s.width,h=s.height;
+ const d=s.getContext('2d',{willReadFrequently:true}).getImageData(0,0,w,h).data;
+ const step=Math.max(1,Math.round(Math.min(w,h)/260));
+ const m=new Uint8Array(w*h),limY=Math.round(h*.80),xl=Math.round(w*.08),xr=Math.round(w*.92);
+ for(let y=0;y<limY;y+=step)for(let x=xl;x<xr;x+=step){
+  const j=(y*w+x)*4,r=d[j],g=d[j+1],b=d[j+2];
+  const cb=128-.168736*r-.331264*g+.5*b,cr=128+.5*r-.418688*g-.081312*b;
+  if(r>80&&g>45&&b>25&&r-g>18&&r-b>25&&cb>=78&&cb<=127&&cr>=135&&cr<=178&&cr-cb>18){
+   for(let yy=y;yy<Math.min(limY,y+step);yy++)for(let xx=x;xx<Math.min(xr,x+step);xx++)m[yy*w+xx]=1;
+  }
+ }
+ const vis=new Uint8Array(w*h),q=new Int32Array(w*h);let best=null;
+ for(let y=0;y<limY;y++)for(let x=xl;x<xr;x++){
+  const s0=y*w+x;if(!m[s0]||vis[s0])continue;
+  let head=0,tail=0;vis[s0]=1;q[tail++]=s0;
+  let minx=x,maxx=x,miny=y,maxy=y,cnt=0;
+  while(head<tail){
+   const i=q[head++];cnt++;const xx=i%w,yy=(i/w)|0;
+   if(xx<minx)minx=xx;if(xx>maxx)maxx=xx;if(yy<miny)miny=yy;if(yy>maxy)maxy=yy;
+   if(xx>0&&m[i-1]&&!vis[i-1]){vis[i-1]=1;q[tail++]=i-1;}
+   if(xx<w-1&&m[i+1]&&!vis[i+1]){vis[i+1]=1;q[tail++]=i+1;}
+   if(yy>0&&m[i-w]&&!vis[i-w]){vis[i-w]=1;q[tail++]=i-w;}
+   if(yy<h-1&&m[i+w]&&!vis[i+w]){vis[i+w]=1;q[tail++]=i+w;}
+  }
+  if(cnt>Math.max(200,Math.round(w*h*.004))&&(!best||cnt>best.cnt))best={cnt:cnt,x0:minx,y0:miny,x1:maxx,y1:maxy};
+ }
+ if(!best)return null;
+ const bw=best.x1-best.x0,bh=best.y1-best.y0;
+ const fx=Math.max(0,best.x0-bw*.04),fy=Math.max(0,best.y0-bh*.15);
+ return {x:fx,y:fy,w:Math.min(w-fx,bw*1.08),h:Math.min(h-fy,bh*1.08)};
+}
+function ensureSegFace(){
+ if(S.segFace&&S.segId===S.srcId)return;
+ S.segFace=(S.faceManual&&S.face)?S.face:(skinFace()||S.face||defaultFace());
+ S.segId=S.srcId;
+}
+
+/* ---------- 抠图适配层：把内核接到界面 ---------- */
+function buildPerson(mode){
+ const s=S.srcCanvas,w=s.width,h=s.height;
+ const out=document.createElement('canvas');out.width=w;out.height=h;
+ const octx=out.getContext('2d',{willReadFrequently:true});
+ octx.drawImage(s,0,0);
+ if(mode==='none')return out;
+ ensureSegFace();
+ const img=s.getContext('2d',{willReadFrequently:true}).getImageData(0,0,w,h);
+ const res=SegCore.segment(img.data,w,h,{
+   power:+$('#cutPower').value/100,
+   fine:mode==='fine',
+   iters:mode==='simple'?1:3,
+   protectBody:$('#protectBody').checked,
+   face:S.segFace
+ });
+ octx.putImageData(new ImageData(res,w,h),0,0);
+ return out;
+}
+
+function hexRgb(hex){
+ const v=hex.replace('#','');return [parseInt(v.slice(0,2),16),parseInt(v.slice(2,4),16),parseInt(v.slice(4,6),16)];
+}
+function personKey(mode){
+ const f=S.segFace,fs=f?[f.x|0,f.y|0,f.w|0,f.h|0].join(','):'';
+ return [mode,S.srcId,wSize(),$('#cutPower').value,$('#protectBody').checked,fs,S.faceManual?1:0].join('|');
+}
+function ensurePerson(mode){
+ const key=personKey(mode);
+ if(S.person&&S.maskKey===key)return false;
+ S.person=buildPerson(mode);S.personBase=cloneCanvas(S.person);S.maskKey=key;
+ return true;
+}
+function wSize(){return S.srcCanvas.width+'x'+S.srcCanvas.height;}
+function cloneCanvas(c){const n=document.createElement('canvas');n.width=c.width;n.height=c.height;n.getContext('2d').drawImage(c,0,0);return n;}
+function shade(hex,amt){return '#'+hexRgb(hex).map(v=>Math.max(0,Math.min(255,Math.round(v+amt*255)))).map(v=>v.toString(16).padStart(2,'0')).join('');}
+
+/* ---------- 合成 ---------- */
+function drawBackground(ctx,w,h,p){
+ if(p.gradient){const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,shade(p.bg,.055));g.addColorStop(1,shade(p.bg,-.055));ctx.fillStyle=g;}
+ else ctx.fillStyle=p.bg;
+ ctx.fillRect(0,0,w,h);
+}
+function drawCover(ctx,img,w,h,rot){
+ const k=Math.max(w/img.width,h/img.height),dw=img.width*k,dh=img.height*k;
+ ctx.save();ctx.translate(w/2,h/2);if(rot)ctx.rotate(rot*Math.PI/180);ctx.imageSmoothingQuality='high';
+ ctx.drawImage(img,-dw/2,-dh/2,dw,dh);ctx.restore();
+}
+/* 抠像层重采样到成片尺寸：整倍数放大绘制后逐级折半，折半是严格的 box 平均。
+   一次 drawImage 从 780px 缩到 260px 只有双线性采样，二值 α 会留下楼梯台阶。 */
+function resamplePerson(W,H,p){
+ let SS=W*H<=560000?4:2;
+ const cw=W*SS,ch=H*SS;
+ let c=document.createElement('canvas');c.width=cw;c.height=ch;
+ const ctx=c.getContext('2d');ctx.imageSmoothingQuality='high';
+ if(p.noCrop){
+  drawCover(ctx,S.person,cw,ch,p.rotation);
+ }else{
+  const f=S.face;
+  const scale=(ch*p.faceRatio)/Math.max(1,f.h);
+  const cx=cw*.5+p.offX*cw;
+  const cy=ch*p.topPad+(ch*p.faceRatio)/2+p.offY*ch;
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(p.rotation*Math.PI/180);ctx.scale(scale,scale);
+  ctx.drawImage(S.person,-(f.x+f.w/2),-(f.y+f.h/2));
+  ctx.restore();
+ }
+ for(let ss=SS;ss>1;ss>>=1){
+  const t=document.createElement('canvas');t.width=c.width>>1;t.height=c.height>>1;
+  const tc=t.getContext('2d');tc.imageSmoothingQuality='high';
+  tc.drawImage(c,0,0,t.width,t.height);
+  c=t;
+ }
+ return c;
+}
+/* α 微平滑：[1 2 1]⊗[1 2 1] 只作用于 α，把采样后残留的 1px 台阶抹平。
+   RGB 保持「纯前景色」，所以不会产生灰边——只会让轮廓线更顺。 */
+function smoothAlpha(cv){
+ const w=cv.width,h=cv.height;
+ const ctx=cv.getContext('2d',{willReadFrequently:true});
+ const img=ctx.getImageData(0,0,w,h),d=img.data;
+ const a=new Uint8ClampedArray(w*h);
+ for(let i=0;i<w*h;i++)a[i]=d[i*4+3];
+ for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+  const i=y*w+x;
+  const v=a[i];
+  if(v===0||v===255){                 /* 只看边界，内部不参与运算 */
+   const s=a[i-1]+a[i+1]+a[i-w]+a[i+w];
+   if(s===0||s===1020)continue;
+  }
+  const t=(a[i-1]+a[i+1]+a[i-w]+a[i+w])*2
+        + a[i-w-1]+a[i-w+1]+a[i+w-1]+a[i+w+1]
+        + v*4;
+  d[i*4+3]=t/16;
+ }
+ ctx.putImageData(img,0,0);
+}
+function compose(p){
+ const W=p.spec.px[0],H=p.spec.px[1];
+ const person=resamplePerson(W,H,p);
+ smoothAlpha(person);
+ const c=document.createElement('canvas');c.width=W;c.height=H;
+ const ctx=c.getContext('2d');ctx.imageSmoothingQuality='high';
+ drawBackground(ctx,W,H,p);
+ ctx.drawImage(person,0,0);
+ return c;
+}
+let regenTimer=null;
+function queueRegen(){if(!S.single)return;clearTimeout(regenTimer);regenTimer=setTimeout(()=>generate(false),140);}
+async function generate(notify){
+ if(!S.srcCanvas){toast('请先选择或拖入一张照片');return;}
+ await ensureFace();
+ const p=params();
+ const stale=!S.person||S.maskKey!==personKey(p.cut);
+ if(stale)showBusy(p.cut==='none'?'正在裁切…':'正在抠像，请稍候…');
+ if(stale)await new Promise(r=>setTimeout(r,45));
+ try{
+  ensurePerson(p.cut);
+  S.single=compose(p);S.view='result';
+  $$('.tab').forEach(x=>x.classList.toggle('on',x.dataset.view==='result'));
+  renderPreview();updateInfo();
+  if(notify)toast('已生成 '+p.spec.px.join('×')+' px 证件照');
+ }finally{hideBusy();}
+}
+
+/* ---------- 相纸排版 ---------- */
+function generateSheet(notify){
+ if(!S.single){toast('请先生成单张证件照');return;}
+ const lay=$('#layout').value,W=S.single.width,H=S.single.height,gap=24,margin=36;
+ let pw,ph,cols,rows;
+ if(lay==='a4'){pw=2480;ph=3508;}
+ else if(lay==='grid'){
+  cols=Math.max(1,Math.min(12,+$('#gridCols').value||4));rows=Math.max(1,Math.min(12,+$('#gridRows').value||4));
+  pw=cols*W+(cols-1)*gap+margin*2;ph=rows*H+(rows-1)*gap+margin*2;
+ }else{pw=1200;ph=1800;}
+ if(lay!=='grid'){
+  cols=Math.floor((pw-margin*2+gap)/(W+gap));
+  rows=Math.floor((ph-margin*2+gap)/(H+gap));
+  if(cols<1||rows<1){toast('当前规格太大，放不进相纸，请选 A4 或自定义网格');return;}
+ }
+ const c=document.createElement('canvas');c.width=pw;c.height=ph;
+ const ctx=c.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,pw,ph);
+ ctx.imageSmoothingQuality='high';
+ const ox=(pw-(cols*W+(cols-1)*gap))/2,oy=(ph-(rows*H+(rows-1)*gap))/2;
+ const lines=(lay==='sheet6line');
+ for(let r=0;r<rows;r++)for(let col=0;col<cols;col++){
+  const x=ox+col*(W+gap),y=oy+r*(H+gap);
+  ctx.drawImage(S.single,x,y);
+  ctx.strokeStyle='#d8dee4';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,W-1,H-1);
+  if(lines){
+   ctx.save();ctx.setLineDash([7,7]);ctx.strokeStyle='#9fb0bf';ctx.lineWidth=1;
+   ctx.strokeRect(x-4.5,y-4.5,W+9,H+9);ctx.restore();
+  }
+ }
+ S.sheet=c;S.view='sheet';
+ $$('.tab').forEach(x=>x.classList.toggle('on',x.dataset.view==='sheet'));
+ renderPreview();updateInfo();
+ if(notify)toast('排版完成：'+cols+' 列 × '+rows+' 行，共 '+(cols*rows)+' 张');
+}
+
+/* ---------- 预览 ---------- */
+function renderPreview(){
+ const cv=$('#preview');let src=null;
+ if(S.view==='sheet')src=S.sheet;else if(S.view==='original')src=S.srcCanvas;else src=S.single;
+ if(!src){cv.hidden=true;$('#empty').style.display='';updateInfo();return;}
+ cv.hidden=false;$('#empty').style.display='none';
+ if(cv.width!==src.width||cv.height!==src.height){cv.width=src.width;cv.height=src.height;}
+ const ctx=cv.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(src,0,0);
+ updateInfo();
+}
+function updateInfo(){
+ const p=params(),el=$('#info');
+ let cur=S.view==='sheet'?S.sheet:S.view==='original'?S.srcCanvas:S.single;
+ const bits=[];
+ if(S.srcCanvas)bits.push('原图 '+S.srcCanvas.width+'×'+S.srcCanvas.height+'px');
+ if(S.single)bits.push('单张 '+p.spec.px.join(' × ')+' px · '+p.spec.mm.join(' × ')+' mm · 300dpi');
+ if(S.sheet)bits.push('排版 '+S.sheet.width+'×'+S.sheet.height+'px');
+ if(cur)bits.push('当前显示 '+cur.width+'×'+cur.height+'px');
+ el.innerHTML=bits.length?bits.map(b=>'<span>'+b+'</span>').join('<span class="dot"></span>'):'<span>等待载入图片</span>';
+}
+$('#preview').addEventListener('click',e=>{
+ if(!S.picking)return;
+ const cv=e.target,r=cv.getBoundingClientRect();
+ const x=Math.floor((e.clientX-r.left)/r.width*cv.width),y=Math.floor((e.clientY-r.top)/r.height*cv.height);
+ if(x<0||y<0||x>=cv.width||y>=cv.height)return;
+ const d=cv.getContext('2d',{willReadFrequently:true}).getImageData(x,y,1,1).data;
+ S.bg='#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('');
+ S.picking=false;$('#pickTip').classList.remove('on');syncBgSelect();queueRegen();toast('已取色 '+S.bg.toUpperCase());
+});
+
+/* ---------- 人脸标定弹窗 ---------- */
+let faceDrag=null;
+function openFace(){
+ if(!S.srcCanvas){toast('请先载入图片');return;}
+ const cv=$('#faceCanvas');cv.width=S.srcCanvas.width;cv.height=S.srcCanvas.height;
+ faceDrag=Object.assign({},S.face||defaultFace());
+ drawFace();openM('mFace');
+}
+function drawFace(){
+ const cv=$('#faceCanvas'),ctx=cv.getContext('2d');
+ ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(S.srcCanvas,0,0);
+ ctx.fillStyle='rgba(28,45,62,.16)';ctx.fillRect(0,0,cv.width,cv.height);
+ if(faceDrag&&faceDrag.w>2&&faceDrag.h>2){
+  const f=faceDrag;
+  ctx.save();ctx.beginPath();ctx.rect(f.x,f.y,f.w,f.h);ctx.clip();ctx.drawImage(S.srcCanvas,0,0);ctx.restore();
+  ctx.strokeStyle='#3c5c7d';ctx.lineWidth=Math.max(2,cv.width/400);ctx.strokeRect(f.x,f.y,f.w,f.h);
+  $('#faceInfo').textContent='脸框 '+Math.round(f.w)+'×'+Math.round(f.h)+'px';
+ }
+}
+(()=>{
+ const cv=$('#faceCanvas');let start=null;
+ const pos=e=>{const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*cv.width,y:(e.clientY-r.top)/r.height*cv.height};};
+ cv.addEventListener('mousedown',e=>{start=pos(e);});
+ cv.addEventListener('mousemove',e=>{
+  if(!start)return;const p=pos(e);
+  faceDrag={x:Math.min(start.x,p.x),y:Math.min(start.y,p.y),w:Math.abs(p.x-start.x),h:Math.abs(p.y-start.y)};drawFace();
+ });
+ cv.addEventListener('mouseup',()=>{start=null;});
+})();
+$('#autoFaceBtn').addEventListener('click',async()=>{faceDrag=skinFace()||await autoFace();drawFace();toast('已按肤色自动定位脸部，可再手动拖框微调');});
+$('#faceOk').addEventListener('click',()=>{
+ if(!faceDrag||faceDrag.w<12||faceDrag.h<12){toast('请先在图上拖出脸框');return;}
+ S.face=faceDrag;S.faceManual=true;S.segFace=null;S.segId=-1;closeM('mFace');generate(true);
+});
+
+/* ---------- 手动修边弹窗 ---------- */
+function openRetouch(){
+ if(!S.srcCanvas){toast('请先载入图片');return;}
+ if($('#cut').value==='none'){toast('当前为不抠图模式，无需修边');return;}
+ if(!S.face)S.face=defaultFace();
+ const stale=!S.person||S.maskKey!==personKey($('#cut').value);
+ const open=()=>{try{ensurePerson($('#cut').value);drawRetouch();openM('mRetouch');}finally{hideBusy();}};
+ if(stale){showBusy('正在准备修边图层…');setTimeout(open,45);return;}
+ open();
+}
+function drawRetouch(){
+ const cv=$('#retouchCanvas');
+ if(cv.width!==S.person.width||cv.height!==S.person.height){cv.width=S.person.width;cv.height=S.person.height;}
+ const ctx=cv.getContext('2d',{willReadFrequently:true});
+ ctx.clearRect(0,0,cv.width,cv.height);
+ ctx.fillStyle=S.bg;ctx.fillRect(0,0,cv.width,cv.height);ctx.drawImage(S.person,0,0);
+}
+let brush='erase',painting=false;
+$$('[data-brush]').forEach(b=>b.addEventListener('click',()=>{
+ brush=b.dataset.brush;$$('[data-brush]').forEach(x=>x.classList.toggle('on',x===b));
+}));
+function paintAt(e){
+ const cv=$('#retouchCanvas'),r=cv.getBoundingClientRect();
+ const x=(e.clientX-r.left)/r.width*cv.width,y=(e.clientY-r.top)/r.height*cv.height,rad=+$('#brushSize').value;
+ const pc=S.person.getContext('2d',{willReadFrequently:true});
+ pc.save();pc.globalCompositeOperation='destination-out';pc.beginPath();pc.arc(x,y,rad,0,Math.PI*2);pc.fill();pc.restore();
+ if(brush==='restore'){
+  pc.save();pc.beginPath();pc.arc(x,y,rad,0,Math.PI*2);pc.clip();pc.drawImage(S.personBase,0,0);pc.restore();
+ }
+ drawRetouch();
+}
+(()=>{
+ const cv=$('#retouchCanvas');
+ cv.addEventListener('mousedown',e=>{painting=true;paintAt(e);});
+ cv.addEventListener('mousemove',e=>{if(painting)paintAt(e);});
+ ['mouseup','mouseleave'].forEach(ev=>cv.addEventListener(ev,()=>{painting=false;}));
+})();
+$('#brushReset').addEventListener('click',()=>{
+ S.person=cloneCanvas(S.personBase);drawRetouch();toast('蒙版已重置');
+});
+$('#retouchOk').addEventListener('click',()=>{closeM('mRetouch');generate(true);});
+
+/* ---------- 保存 / DPI 元数据 ---------- */
+function crc32(u8){
+ let c,t=crc32.table;
+ if(!t){t=crc32.table=[];for(let n=0;n<256;n++){c=n;for(let k=0;k<8;k++)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}}
+ let crc=0xffffffff;for(let i=0;i<u8.length;i++)crc=t[(crc^u8[i])&0xff]^(crc>>>8);return (crc^0xffffffff)>>>0;
+}
+function patchDpi(buf,fmt,dpi){
+ const u8=new Uint8Array(buf);
+ if(fmt==='png'&&u8.length>33&&u8[0]===137&&u8[12]===73&&u8[13]===72&&u8[14]===68&&u8[15]===82){
+  const ppm=Math.round(dpi/0.0254),chunk=new Uint8Array(21),dv=new DataView(chunk.buffer);
+  dv.setUint32(0,9);chunk.set([112,72,89,115],4);dv.setUint32(8,ppm);dv.setUint32(12,ppm);chunk[16]=1;
+  dv.setUint32(17,crc32(chunk.subarray(4,17)));
+  const out=new Uint8Array(u8.length+21);out.set(u8.subarray(0,33),0);out.set(chunk,33);out.set(u8.subarray(33),54);
+  return new Blob([out],{type:'image/png'});
+ }
+ if(fmt==='jpg'&&u8.length>20&&u8[0]===255&&u8[1]===216&&u8[2]===255&&u8[3]===224&&String.fromCharCode(u8[6],u8[7],u8[8],u8[9])==='JFIF'){
+  const dv=new DataView(u8.buffer);u8[13]=1;dv.setUint16(14,dpi,false);dv.setUint16(16,dpi,false);
+  return new Blob([u8],{type:'image/jpeg'});
+ }
+ return null;
+}
+function download(canvas,name,fmt,q,dpi,writeDpi){
+ canvas.toBlob(async blob=>{
+  if(writeDpi&&dpi){const p=patchDpi(await blob.arrayBuffer(),fmt,dpi);if(p)blob=p;}
+  const a=document.createElement('a'),url=URL.createObjectURL(blob);
+  a.href=url;a.download=name+'.'+fmt;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+  toast('已保存 '+name+'.'+fmt);
+ },fmt==='jpg'?'image/jpeg':'image/png',q);
+}
+function openSave(target){
+ const c=target==='sheet'?S.sheet:S.single;
+ $('#saveSub').textContent=target==='sheet'?'相纸排版 · '+c.width+'×'+c.height+'px':'单张证件照 · '+c.width+'×'+c.height+'px';
+ $('#saveName').value=target==='sheet'?'证件照排版_'+c.width+'x'+c.height:'证件照_'+c.width+'x'+c.height;
+ updateSaveInfo();openM('mSave');
+}
+function updateSaveInfo(){
+ const c=S.saveTarget==='sheet'?S.sheet:S.single;if(!c)return;
+ $('#saveInfo').textContent='输出尺寸 '+c.width+' × '+c.height+' px · '+$('#saveFmt').selectedOptions[0].textContent+' · '+($('#saveDpi').value==='0'?'不写入 DPI':'写入 '+$('#saveDpi').value+' dpi 打印信息');
+}
+function doCustomSave(){
+ const c=S.saveTarget==='sheet'?S.sheet:S.single;if(!c)return;
+ const fmt=$('#saveFmt').value,q=+$('#saveQ').value,dpi=+$('#saveDpi').value;
+ const name=($('#saveName').value||'证件照').replace(/[\\/:*?"<>|]/g,'_');
+ closeM('mSave');download(c,name,fmt,q,dpi,dpi>0);
+}
+
+initControls();calcSpec();updateInfo();
+
+/* 无头自测：仅当 URL 带 selftest=1 时运行。
+   real=1 走「注入真实照片」通道，由 CDP 把用户原图塞进文件输入框后跑全链路 */
+if(location.search.indexOf('selftest=1')>=0){
+ const REAL=location.search.indexOf('real=1')>=0;
+ window.__S=S;
+ if(!REAL){
+ const c=document.createElement('canvas');c.width=600;c.height=800;
+ const x=c.getContext('2d',{willReadFrequently:true});
+ const g=x.createLinearGradient(0,0,0,800);g.addColorStop(0,'#eeeae2');g.addColorStop(1,'#d7d2c9');
+ x.fillStyle=g;x.fillRect(0,0,600,800);
+ const g2=x.createLinearGradient(0,0,600,0);
+ g2.addColorStop(0,'rgba(110,100,86,.17)');g2.addColorStop(.5,'rgba(255,255,255,.05)');g2.addColorStop(1,'rgba(110,100,86,.13)');
+ x.fillStyle=g2;x.fillRect(0,0,600,800);
+ /* 靠近人像的墙面阴影：与顶部参考色差 30~50，复刻真实室内光照不均 */
+ const g3=x.createRadialGradient(300,390,40,300,390,380);
+ g3.addColorStop(0,'rgba(86,98,112,.28)');g3.addColorStop(.65,'rgba(86,98,112,.14)');g3.addColorStop(1,'rgba(86,98,112,0)');
+ x.fillStyle=g3;x.fillRect(0,0,600,800);
+ x.fillStyle='#c7a23a';[[70,240],[520,270],[85,430],[505,455]].forEach(p=>{x.beginPath();x.arc(p[0],p[1],3,0,7);x.fill();});
+ x.fillStyle='#22262b';x.beginPath();x.moveTo(0,800);x.lineTo(0,560);
+ x.quadraticCurveTo(300,430,600,560);x.lineTo(600,800);x.closePath();x.fill();
+ x.fillStyle='#ffffff';
+ x.beginPath();x.moveTo(0,605);x.lineTo(155,650);x.lineTo(125,800);x.lineTo(0,800);x.closePath();x.fill();
+ x.beginPath();x.moveTo(600,605);x.lineTo(445,650);x.lineTo(475,800);x.lineTo(600,800);x.closePath();x.fill();
+ x.fillStyle='#1b1b1b';x.fillRect(18,690,52,16);x.fillRect(530,700,46,15);
+ x.fillStyle='#c9dbe8';x.beginPath();x.moveTo(215,800);x.lineTo(300,595);x.lineTo(385,800);x.closePath();x.fill();
+ x.fillStyle='#d9a887';x.fillRect(262,410,76,120);
+ x.fillStyle='#e8bd9a';x.beginPath();x.ellipse(300,305,108,145,0,0,Math.PI*2);x.fill();
+ x.fillStyle='#2a211c';x.beginPath();x.ellipse(300,205,110,72,0,Math.PI,Math.PI*2);x.fill();
+ x.fillRect(190,202,12,100);x.fillRect(398,202,12,100);
+ S.srcCanvas=c;S.src=null;S.srcId++;S.srcName='selftest.png';
+ S.face={x:192,y:170,w:216,h:270};S.faceManual=true;S.segFace=S.face;S.segId=S.srcId;
+ }else{
+  S.srcCanvas=null;S.src=null;S.face=null;S.faceManual=false;S.segFace=null;S.segId=-1;
+  S.person=null;S.personBase=null;S.maskKey='';S.single=null;S.sheet=null;
+ }
+ (async()=>{
+  const out=document.createElement('pre');out.id='selftest';out.textContent='PROGRESS_0';
+  document.body.appendChild(out);
+  const R=[],chk=(n,ok,d)=>{R.push({n:n,ok:!!ok,d:d});out.textContent='PROGRESS '+R.length+' '+n;};
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  const px=(cv,a,b)=>Array.from(cv.getContext('2d',{willReadFrequently:true}).getImageData(a,b,1,1).data);
+  const ma=(a,b)=>px(S.person,a,b)[3];
+  const dims=(w,h)=>S.single&&S.single.width===w&&S.single.height===h;
+  const reset=()=>{
+   $('#spec').value='s1';$('#bg').value='0';S.bg=BGS[0][1];
+   $('#cut').value='standard';$('#layout').value='single';
+   $('#noCrop').checked=false;$('#gradient').checked=false;$('#protectBody').checked=true;
+   Object.keys(DEF).forEach(k=>{$('#'+k).value=DEF[k];});
+   $('#gridCols').value=4;$('#gridRows').value=4;
+  };
+  try{
+   if(REAL){
+    /* 真实照片回归：区域不再是写死坐标，全部按人脸框自适应，
+       这样换一张构图完全不同的照片（大头贴式近景、窄肩）也能照跑 */
+    window.__REAL_READY=1;
+    const t0=Date.now();
+    while(!S.srcCanvas&&Date.now()-t0<20000)await wait(120);
+    if(!S.srcCanvas)throw new Error('真实照片未注入');
+    const __t1=performance.now();
+    const WB=location.search.indexOf('white=1')>=0;
+    const RB=location.search.indexOf('red=1')>=0;
+    const BGI=WB?0:(RB?2:1);
+    reset();$('#bg').value=String(BGI);S.bg=BGS[BGI][1];$('#noCrop').checked=true;
+    await generate(false);
+    const W=S.person.width,H=S.person.height;
+    const astat=(x0,y0,x1,y1)=>{
+     const X=Math.max(0,Math.round(x0)),Y=Math.max(0,Math.round(y0));
+     const X2=Math.min(W,Math.round(x1)),Y2=Math.min(H,Math.round(y1));
+     if(X2-X<2||Y2-Y<2)return {fg:1,bg:1,w:0};
+     const dd=S.person.getContext('2d',{willReadFrequently:true}).getImageData(X,Y,X2-X,Y2-Y).data;
+     let fg=0,bg=0;for(let i=3;i<dd.length;i+=4){if(dd[i]>=200)fg++;else if(dd[i]<=55)bg++;}
+     const n=dd.length/4;
+     return {fg:+(fg/n).toFixed(3),bg:+(bg/n).toFixed(3),w:X2-X,h:Y2-Y};
+    };
+    const isBlue=p=>p[2]>p[0]+45&&p[2]>p[1]+30&&p[0]<180;
+    const isBg=p=>WB?(p[0]>243&&p[1]>243&&p[2]>243):(RB?(p[0]>200&&p[1]<80&&p[2]<80):isBlue(p));
+    const pr=(a,b)=>px(S.single,a,b);
+    const f=S.segFace,cx=f.x+f.w*.5,fb=f.y+f.h;
+    const regs=[
+     ['wallTop',W*.10,0,W*.90,H*.05,'bg',.85],
+     ['stripLeft',0,0,W*.09,H*.78,'bg',.85],
+     ['stripRight',W*.91,0,W,H*.78,'bg',.85],
+     ['sideMidL',0,H*.28,W*.08,H*.62,'bg',.85],
+     ['sideMidR',W*.92,H*.28,W,H*.62,'bg',.85],
+
+     ['face',cx-f.w*.30,f.y+f.h*.30,cx+f.w*.30,fb-f.h*.25,'fg',.92],
+     ['chin',cx-f.w*.22,fb-f.h*.18,cx+f.w*.22,fb+f.h*.10,'fg',.88],
+     ['jacket',W*.02,H*.90,W*.18,H,'fg',.85]
+    ];
+    const stats={};
+    regs.forEach(r=>{const s2=astat(r[1],r[2],r[3],r[4]);stats[r[0]]=[s2.bg,s2.fg];
+     if(!s2.w){return;}
+     chk('real_'+r[0],(r[5]==='bg'?s2.bg:s2.fg)>=r[6],s2);
+    });
+    const segMs=Math.round(performance.now()-__t1);
+    chk('real_singleSize',dims(260,378),[S.single.width,S.single.height]);
+    chk('real_cornerBg',isBg(pr(3,3)),pr(3,3));
+    chk('real_chinNotBg',!isBg(pr(130,240))&&!isBg(pr(130,260)),[pr(130,240),pr(130,260)]);
+    chk('real_faceBox',!!S.segFace&&S.segFace.w>60&&S.segFace.h>60,S.segFace);
+    /* 全局残墙检测：整张人像里「接近墙色且不是人像」的像素必须几乎为零 */
+    const dP=S.person.getContext('2d',{willReadFrequently:true}).getImageData(0,0,W,H).data;
+    let wallLike=0,fgN=0;
+    for(let i=0;i<dP.length;i+=4){
+     if(dP[i+3]<200)continue;
+     fgN++;
+     const rr=dP[i],gg=dP[i+1],bb=dP[i+2];
+     if(rr>150&&gg>148&&bb>138&&Math.abs(rr-gg)<26&&Math.abs(gg-bb)<30&&rr<250)wallLike++;
+    }
+    chk('real_noWallLeft',wallLike/Math.max(1,fgN)<.06,{wallLike:wallLike,fg:fgN,ratio:+(wallLike/Math.max(1,fgN)).toFixed(4)});
+    const rmodes=[];
+    for(const m of ['standard','fine','simple']){
+     $('#cut').value=m;await generate(false);
+     const s2=astat(cx-f.w*.30,fb-f.h*.30,cx+f.w*.30,fb+f.h*.30);chk('real_mode_'+m,s2.fg>=.86,s2);rmodes.push([m,s2.fg]);
+    }
+    $('#cut').value='standard';
+    for(const k of [0,100]){
+     $('#cutPower').value=k;await generate(false);
+     const s2=astat(cx-f.w*.30,fb-f.h*.30,cx+f.w*.30,fb+f.h*.30);
+     chk('real_power_'+k,dims(260,378)&&s2.fg>=.80,[S.single.width,S.single.height,s2]);
+    }
+    $('#cutPower').value=55;
+    for(const on of [true,false]){
+     $('#protectBody').checked=on;await generate(false);
+     const s2=astat(cx-f.w*.30,fb-f.h*.30,cx+f.w*.30,fb+f.h*.30);
+     chk('real_protect_'+on,dims(260,378)&&s2.fg>=.80,[S.single.width,S.single.height,s2]);
+    }
+    $('#protectBody').checked=true;
+    $('#bg').value=String(BGI);S.bg=BGS[BGI][1];await generate(false);generateSheet(false);
+    chk('real_sheet',S.sheet.width===1200&&S.sheet.height===1800,[S.sheet.width,S.sheet.height]);
+    S.view='result';$$('.tab').forEach(t=>t.classList.toggle('on',t.dataset.view==='result'));renderPreview();
+    const fail=R.filter(r=>!r.ok).map(r=>r.n+'='+JSON.stringify(r.d));
+    out.textContent='SELFTEST_RESULT '+JSON.stringify({ok:R.every(r=>r.ok),total:R.length,passed:R.filter(r=>r.ok).length,fail:fail,px:W+'x'+H,ms:segMs,face:S.segFace,stats:stats});
+    return;
+   }
+   /* 1 抠图蒙版：不均匀墙面全抠掉，白衣服/脸/头发全保留 */
+   reset();await generate(false);
+   const pts=[['bgTop',300,30,0],['bgAboveHair',300,110,0],['bgLeft',100,90,0],['bgRight',500,120,0],
+    ['bgSideL',150,300,0],['bgSideR',450,300,0],['bgMidL',120,430,0],['bgMidR',480,430,0],
+    ['bgVisibleL',170,250,0],['bgVisibleR',430,250,0],
+    ['whiteCoatL',100,750,255],['whiteCoatR',565,760,255],['face',300,300,255],['hair',300,180,255]];
+   pts.forEach(p=>{const a=ma(p[1],p[2]);chk('mask_'+p[0],p[3]===0?a<=55:a>=200,a);});
+   const corner=px(S.single,3,3),center=px(S.single,130,220);
+   chk('singleSize',dims(260,378),[S.single.width,S.single.height]);
+   chk('whiteBg',corner[0]>245&&corner[1]>245&&corner[2]>245,corner.slice(0,3));
+   chk('faceKept',(center[0]+center[1]+center[2])<620,center.slice(0,3));
+
+   /* 2 蓝底回归：脸两侧墙面必须整体换成蓝底，不能留白墙 */
+   reset();$('#bg').value='1';S.bg=BGS[1][1];await generate(false);
+   const bc=px(S.single,3,3);
+   chk('blueCorner',Math.abs(bc[0]-67)<4&&Math.abs(bc[1]-142)<4&&Math.abs(bc[2]-219)<4,bc.slice(0,3));
+   const fcx=S.face.x+S.face.w/2,fcy=S.face.y+S.face.h/2,sc=(378*.65)/S.face.h;
+   const cx0=130,cy0=378*.08+(378*.65)/2;
+   [[170,250],[430,250]].forEach((p,i)=>{
+    const q=[Math.round(cx0+(p[0]-fcx)*sc),Math.round(cy0+(p[1]-fcy)*sc)];
+    if(q[0]<0||q[1]<0||q[0]>=260||q[1]>=378){chk('blueCheek'+i,false,'out of frame');return;}
+    const v=px(S.single,q[0],q[1]);
+    chk('blueCheek'+i,Math.abs(v[0]-67)<20&&Math.abs(v[1]-142)<20&&Math.abs(v[2]-219)<20,[q,v.slice(0,3)]);
+   });
+
+   /* 3 全部规格 + 自定义规格 */
+   for(const s of SPECS){reset();$('#spec').value=s.k;await generate(false);chk('spec_'+s.k,dims(s.px[0],s.px[1]),[S.single.width,S.single.height]);}
+   let co=$('#spec option[value="__customSpec"]');
+   if(!co){co=new Option('自定义','__customSpec');$('#spec').insertBefore(co,$('#spec option[value="__custom"]'));}
+   S.customSpec={k:'__customSpec',label:'自定义 30x40mm',mm:[30,40],px:[354,472]};
+   reset();$('#spec').value='__customSpec';await generate(false);chk('spec_custom',dims(354,472),[S.single.width,S.single.height]);
+
+   /* 4 全部底色 */
+   for(let i=0;i<BGS.length;i++){
+    reset();$('#bg').value=String(i);S.bg=BGS[i][1];await generate(false);
+    const v=px(S.single,3,3),w=hexRgb(BGS[i][1]);
+    chk('bg_'+i,Math.abs(v[0]-w[0])<4&&Math.abs(v[1]-w[1])<4&&Math.abs(v[2]-w[2])<4,v.slice(0,3));
+   }
+
+   /* 5 全部抠图模式 + 强度极值 */
+   for(const m of ['standard','fine','simple','none']){
+    reset();$('#cut').value=m;await generate(false);chk('cut_'+m,dims(260,378)&&S.person.width===600,[S.single.width,S.person.width]);
+   }
+   for(const k of [0,100]){reset();$('#cutPower').value=k;await generate(false);chk('power_'+k,dims(260,378),[S.single.width,S.single.height]);}
+
+   /* 6 全部排版 */
+   for(const L of ['single','sheet6','sheet6line','a4','grid']){
+    reset();$('#layout').value=L;$('#gridCols').value=3;$('#gridRows').value=2;
+    await generate(false);generateSheet(false);
+    chk('layout_'+L,!!S.sheet&&S.sheet.width>0&&S.sheet.height>0,S.sheet?[S.sheet.width,S.sheet.height]:null);
+   }
+
+   /* 7 复选框组合 8 滑块极值 */
+   const combos=[[0,0,0],[1,0,1],[0,1,1],[1,1,0]];
+   for(let i=0;i<combos.length;i++){
+    const b=combos[i];reset();$('#noCrop').checked=!!b[0];$('#gradient').checked=!!b[1];$('#protectBody').checked=!!b[2];
+    await generate(false);chk('checks_'+i,dims(260,378),b);
+   }
+   for(const id of ['cutPower','topPad','faceRatio','rotation','offX','offY']){
+    for(const v of [$('#'+id).min,$('#'+id).max]){
+     reset();$('#'+id).value=v;await generate(false);chk('slider_'+id+'_'+v,dims(260,378),v);
+    }
+   }
+
+   /* 9 保存链路：DPI 元数据 + 三个保存入口（拦截下载） */
+   reset();await generate(false);
+   const png=patchDpi(await (await new Promise(r=>S.single.toBlob(r,'image/png'))).arrayBuffer(),'png',300);
+   const pu=new Uint8Array(await png.arrayBuffer());
+   let hasPhys=false;for(let i=0;i<60;i++)if(pu[i]===112&&pu[i+1]===72&&pu[i+2]===89&&pu[i+3]===115)hasPhys=true;
+   chk('pngDpi',hasPhys,hasPhys);
+   const jpg=patchDpi(await (await new Promise(r=>S.single.toBlob(r,'image/jpeg',.95))).arrayBuffer(),'jpg',300);
+   const ju=new Uint8Array(await jpg.arrayBuffer());
+   chk('jpgDpi',ju[13]===1&&ju[14]===1&&ju[15]===44,[ju[13],ju[14],ju[15]]);
+   let clicks=0;const origClick=HTMLAnchorElement.prototype.click;
+   HTMLAnchorElement.prototype.click=function(){clicks++;};
+   $('#saveBtn').click();await wait(400);chk('saveSingle',clicks===1,clicks);
+   S.saveTarget='single';openSave('single');$('#saveFmt').value='jpg';$('#saveName').value='e2e';doCustomSave();
+   await wait(400);chk('saveAs',clicks===2,clicks);
+   generateSheet(false);$('#saveSheetBtn').click();S.saveTarget='sheet';doCustomSave();
+   await wait(400);chk('saveSheet',clicks===3,clicks);
+   HTMLAnchorElement.prototype.click=origClick;
+
+   /* 10 全部弹窗与工具链路 */
+   $$('.modal').forEach(m=>m.classList.remove('show'));
+   openColor();chk('ui_colorPicker',$('#mColor').classList.contains('show')&&$('#swatches').children.length===9,$('#swatches').children.length);closeM('mColor');
+   openM('mSpec');calcSpec();chk('ui_customSpec',$('#specCalc').textContent.indexOf('354')>=0,$('#specCalc').textContent);closeM('mSpec');
+   openFace();chk('ui_faceCalib',$('#faceCanvas').width===600,$('#faceCanvas').width);drawFace();closeM('mFace');
+   openRetouch();chk('ui_retouch',$('#retouchCanvas').width===600,$('#retouchCanvas').width);
+   const rr=$('#retouchCanvas').getBoundingClientRect();
+   try{paintAt({clientX:rr.left+30,clientY:rr.top+30});chk('ui_brush',true,'ok');}catch(e){chk('ui_brush',false,e.message);}
+   $('#brushReset').click();closeM('mRetouch');
+   $('#zoomBtn').click();chk('ui_zoom',$('#preview').style.maxWidth==='none',$('#preview').style.maxWidth);$('#zoomBtn').click();
+   $$('.tab')[1].click();chk('ui_tabOriginal',S.view==='original',S.view);
+   $$('.tab')[0].click();chk('ui_tabResult',S.view==='result',S.view);
+
+   /* 11 收尾视图：view=result 白底 / view=blue 蓝底，便于截图目检 */
+   reset();
+   if(location.search.indexOf('view=blue')>=0){$('#bg').value='1';S.bg=BGS[1][1];$('#faceRatio').value=.5;}
+   await generate(false);
+   if(location.search.indexOf('view=')>=0){S.view='result';$$('.tab').forEach(t=>t.classList.toggle('on',t.dataset.view==='result'));renderPreview();}
+   else generateSheet(false);
+   const fail=R.filter(r=>!r.ok).map(r=>r.n+'='+JSON.stringify(r.d));
+   out.textContent='SELFTEST_RESULT '+JSON.stringify({ok:R.every(r=>r.ok),total:R.length,passed:R.filter(r=>r.ok).length,fail:fail});
+   if(location.search.indexOf('view=')>=0)out.style.display='none';
+  }catch(err){
+   out.textContent='SELFTEST_ERROR '+err.message+'\n'+err.stack+'\nFAILED '+JSON.stringify(R.filter(r=>!r.ok).map(r=>r.n));
+  }
+ })();
+}
+})();
+</script>
+</body>
+</html>

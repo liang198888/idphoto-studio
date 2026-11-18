@@ -1,0 +1,90 @@
+<!-- pages/order/order.wxml - 订单列表 -->
+<view class="container">
+  <!-- 筛选标签 -->
+  <view class="filter-tabs tabs">
+    <view 
+      class="tab {{currentTab === item.value ? 'active' : ''}}" 
+      wx:for="{{tabs}}"
+      wx:key="value"
+      bindtap="switchTab"
+      data-tab="{{item.value}}"
+    >
+      {{item.label}}
+      <text class="tab-count" wx:if="{{item.count > 0}}">{{item.count}}</text>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && orders.length === 0}}">
+    <view class="empty-icon">📋</view>
+    <view class="empty-text">暂无订单记录</view>
+    <button class="btn btn-primary make-btn" bindtap="goMake">去制作</button>
+  </view>
+
+  <!-- 订单列表 -->
+  <view class="order-list" wx:if="{{!loading && orders.length > 0}}">
+    <view 
+      class="order-card card" 
+      wx:for="{{orders}}" 
+      wx:key="orderId"
+      bindtap="viewOrderDetail"
+      data-id="{{item.orderId}}"
+    >
+      <!-- 订单头部 -->
+      <view class="order-header">
+        <view class="order-id">订单号：{{item.orderId}}</view>
+        <view class="order-status status-{{item.status}}">{{item.statusText}}</view>
+      </view>
+
+      <!-- 订单主体 -->
+      <view class="order-body">
+        <view class="order-images">
+          <image 
+            class="order-thumb" 
+            src="{{item.image || '/images/default-cover.png'}}" 
+            mode="aspectFill"
+          ></image>
+          <view class="image-count" wx:if="{{item.imageCount > 1}}">+{{item.imageCount - 1}}</view>
+        </view>
+        <view class="order-info">
+          <view class="order-spec">
+            <text class="spec-name">{{item.specName || '一寸证件照'}}</text>
+            <text class="spec-bg" wx:if="{{item.bgColor}}">{{item.bgColor}}</text>
+          </view>
+          <view class="order-meta">
+            <text class="meta-item">{{item.versionText || '标准版'}}</text>
+            <text class="meta-separator">·</text>
+            <text class="meta-item">{{item.createTime}}</text>
+          </view>
+          <view class="order-price">
+            <text class="price-value">¥{{item.actualAmount || item.amount}}</text>
+            <text class="original-price" wx:if="{{item.originalAmount}}">¥{{item.originalAmount}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 订单操作 -->
+      <view class="order-footer">
+        <view class="order-time">{{item.createTime}}</view>
+        <view class="order-actions" catchtap="">
+          <button class="btn btn-outline mini-btn" bindtap="downloadAgain" data-order="{{item}}">重新下载</button>
+          <button class="btn btn-primary mini-btn" wx:if="{{item.status === 'pending'}}" bindtap="goPay" data-order="{{item}}">去支付</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{hasMore && !loading}}">
+    <text bindtap="loadMore">点击加载更多</text>
+  </view>
+  <view class="no-more" wx:if="{{!hasMore && orders.length > 0}}">
+    <text>已全部加载</text>
+  </view>
+</view>

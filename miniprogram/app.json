@@ -1,0 +1,49 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/result/result",
+    "pages/order/order",
+    "pages/pay/pay",
+    "pages/profile/profile",
+    "pages/share/share",
+    "pages/download/download",
+    "pages/h5tool/h5tool"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#3c5c7d",
+    "navigationBarTitleText": "证件照工作台",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#8794a1",
+    "selectedColor": "#3c5c7d",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "制作",
+        "iconPath": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%238794a1' x='10' y='30' width='80' height='50' rx='8'/%3E%3Ccircle fill='%238794a1' cx='50' cy='55' r='15'/%3E%3C/svg%3E",
+        "selectedIconPath": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%233c5c7d' x='10' y='30' width='80' height='50' rx='8'/%3E%3Ccircle fill='%233c5c7d' cx='50' cy='55' r='15'/%3E%3C/svg%3E"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle fill='%238794a1' cx='50' cy='35' r='20'/%3E%3Cpath fill='%238794a1' d='M20 80 Q50 60 80 80 L80 90 L20 90 Z'/%3E%3C/svg%3E",
+        "selectedIconPath": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle fill='%233c5c7d' cx='50' cy='35' r='20'/%3E%3Cpath fill='%233c5c7d' d='M20 80 Q50 60 80 80 L80 90 L20 90 Z'/%3E%3C/svg%3E"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于定位附近打印店"
+    }
+  },
+  "requiredPrivateInfos": [
+    "chooseImage",
+    "chooseAvatar"
+  ],
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

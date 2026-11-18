@@ -1,0 +1,9 @@
+# 忽略 .workbuddy 内部缓存和开发文件
+.workbuddy/
+
+# 忽略文档目录（只保留 README）
+!README.md
+*.md
+
+# 忽略 node_modules
+node_modules/

@@ -1,0 +1,2 @@
+<!-- pages/h5tool/h5tool.wxml - H5网页工具嵌入页 -->
+<web-view src="{{h5Url}}"></web-view>
