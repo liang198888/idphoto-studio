@@ -1,8 +1,8 @@
 // pages/h5tool/h5tool.js - H5网页工具页
 Page({
   data: {
-    // TODO: 替换为你自己的GitHub Pages URL
-    h5Url: 'https://你的用户名.github.io/idphoto-studio/'
+    // GitHub Pages 线上地址（已上线）
+    h5Url: 'https://liang198888.github.io/idphoto-studio/'
   },
   
   onLoad() {
