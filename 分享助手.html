@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>分享助手 · 证件照工作台</title>
+<style>
+:root{--bg:#f7f9fb;--surface:#fff;--line:#e3e9ee;--ink:#22303c;--muted:#8794a1;--deep:#3c5c7d;--soft:#eaf0f6;--warm:#c08b5c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.7 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:36px 20px 60px}
+h1{font-size:24px;font-weight:600;margin:0 0 6px}
+.lead{color:var(--muted);font-size:13px;margin:0 0 28px}
+.urlbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.urlbox code{flex:1;min-width:260px;font:14px Consolas,monospace;color:var(--deep);word-break:break-all}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 16px;border-radius:8px;white-space:nowrap}
+button.primary{background:var(--deep);color:#fff;border-color:var(--deep)}
+button:hover{border-color:var(--deep)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:18px}
+.card h2{font-size:16px;font-weight:600;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+.tag{font-size:11px;font-weight:400;color:var(--deep);background:var(--soft);padding:3px 9px;border-radius:99px}
+.hint{color:var(--muted);font-size:12px;margin:0 0 16px}
+textarea{width:100%;min-height:132px;border:1px solid var(--line);border-radius:8px;padding:14px;font:14px/1.8 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);resize:vertical}
+.row{display:flex;gap:10px;margin-top:12px;align-items:center}
+.note{font-size:12px;color:var(--muted);margin-left:auto}
+.tips{background:var(--soft);border-radius:12px;padding:20px 24px;margin-top:28px}
+.tips h3{font-size:15px;font-weight:600;margin:0 0 10px}
+.tips ol{margin:0;padding-left:20px;color:var(--ink);font-size:13px}
+.tips li{margin-bottom:7px}
+.ok{color:var(--deep);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>分享助手</h1>
+  <p class="lead">把下面任意一段文案发出去，就能验证有没有人用。发完记得回来看数字。</p>
+
+  <div class="urlbox">
+    <code id="url">https://liang198888.github.io/idphoto-studio/</code>
+    <button class="primary" onclick="cp('url',this)">复制链接</button>
+    <button onclick="window.open(document.getElementById('url').textContent,'_blank')">打开网站</button>
+  </div>
+
+  <div class="card">
+    <h2>发微信群 / 私聊 <span class="tag">最推荐</span></h2>
+    <p class="hint">口语化，像顺手分享一个好东西，不像广告。</p>
+    <textarea id="t1">发现个挺实用的小工具，自己做证件照：一寸二寸、红蓝白底都能选，手机打开直接用，照片不上传，也不用注册，免费。急用证件照的时候挺省事 👉 https://liang198888.github.io/idphoto-studio/wx.html
+
+谁试了回我一句「能用」或者哪里别扭，我看看这东西到底好不好使。</textarea>
+    <div class="row"><button class="primary" onclick="cp('t1',this)">复制这段</button><span class="note">适合：微信群、私聊好友</span></div>
+  </div>
+
+  <div class="card">
+    <h2>发朋友圈 <span class="tag">配竖图</span></h2>
+    <p class="hint">配合同目录下的「证件照_朋友圈图.png」一起发，二维码在图上。</p>
+    <textarea id="t2">以后证件照不用专门跑照相馆了。
+
+手机上传一张照片，选个底色，几秒就出图，一寸二寸、红蓝白底都能做，直接保存到相册。关键是照片只在自己手机里处理，不上传，也不用注册，免费。
+
+图里二维码长按就能打开，需要的自取。
+链接：https://liang198888.github.io/idphoto-studio/pyq.html</textarea>
+    <div class="row"><button class="primary" onclick="cp('t2',this)">复制这段</button><span class="note">适合：朋友圈 + 竖图</span></div>
+  </div>
+
+  <div class="card">
+    <h2>请朋友帮忙试用 <span class="tag">拿真实反馈</span></h2>
+    <p class="hint">验证阶段最有用的一段 —— 直接问「值不值得做下去」。</p>
+    <textarea id="t3">帮个忙：我做了个手机上自己做证件照的小工具，想看看是不是真有人需要。
+
+https://liang198888.github.io/idphoto-studio/friend.html
+
+麻烦花一分钟试一下，然后回我三句话就行：
+1. 有没有打开成功
+2. 做出来的照片能不能用
+3. 如果收费 9 块 9，你愿意吗
+
+照片不会上传，也不用登录，随便试。</textarea>
+    <div class="row"><button class="primary" onclick="cp('t3',this)">复制这段</button><span class="note">适合：找 10 个熟人挨个发</span></div>
+  </div>
+
+  <div class="tips">
+    <h3>怎么判断「有没有人用」</h3>
+    <ol>
+      <li>网站页面最下面有一行「已有 X 位朋友打开过 · 累计访问 X 次」，<span class="ok">数字涨了就说明有人来了</span>。</li>
+      <li>发出去隔一天，回来跟我说一声，我帮你查具体涨了多少。</li>
+      <li>比数字更重要的是有人回你「能用」或者提意见 —— 有反馈就说明需求是真的。</li>
+      <li>先别急着做小程序，也别花钱。等确认有人愿意付钱了再上。</li>
+    </ol>
+  </div>
+</div>
+<script>
+function cp(id, btn){
+  var el=document.getElementById(id);
+  var txt = (el.tagName==='TEXTAREA') ? el.value : el.textContent.trim();
+  var done=function(){ var old=btn.textContent; btn.textContent='已复制 ✓'; setTimeout(function(){btn.textContent=old;},1600); };
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(txt).then(done, function(){ fallback(txt,done); });
+  } else { fallback(txt,done); }
+}
+function fallback(txt,done){
+  var ta=document.createElement('textarea');
+  ta.value=txt; ta.style.position='absolute'; ta.style.left='-9999px';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); done(); }catch(e){ alert('复制失败，请手动选中文字复制'); }
+  document.body.removeChild(ta);
+}
+</script>
+</body>
+</html>
