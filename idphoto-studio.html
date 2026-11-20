@@ -2100,5 +2100,23 @@ if(location.search.indexOf('selftest=1')>=0){
 }
 })();
 </script>
+
+<!-- 访问统计：免费、无需注册、只记次数，不上传照片 -->
+<div style="max-width:1180px;margin:26px auto 20px;padding:14px 20px;border-top:1px solid #e3e9ee;text-align:center;color:#8794a1;font-size:12px;letter-spacing:.3px">
+  已有 <span id="v_uv" style="color:#3c5c7d;font-weight:600">…</span> 位朋友打开过 · 累计访问 <span id="v_pv" style="color:#3c5c7d;font-weight:600">…</span> 次
+</div>
+<script>
+(function(){
+  window.__bz = function(d){
+    var a=document.getElementById('v_uv'), b=document.getElementById('v_pv');
+    if(a && d.site_uv!=null) a.textContent=d.site_uv;
+    if(b && d.site_pv!=null) b.textContent=d.site_pv;
+  };
+  var s=document.createElement('script');
+  s.src='https://busuanzi.ibruce.info/busuanzi?jsonpCallback=__bz';
+  s.async=true;
+  document.body.appendChild(s);
+})();
+</script>
 </body>
 </html>
